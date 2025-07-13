@@ -29,9 +29,15 @@
             align-items: center;
             justify-content: center;
         }
-        /* New Alert Popup Style */
         #alert-popup {
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        /* Desktop dropdown fix */
+        .group .group-hover\:block {
+            display: none;
+        }
+        .group:hover .group-hover\:block {
+            display: block;
         }
     </style>
 </head>
@@ -184,20 +190,22 @@
 
             const desktopContainer = document.getElementById('desktop-menu-container');
             let desktopHTML = `<a href="#home" onclick="handleNav(event, '#home')" class="text-gray-600 hover:text-teal-500 transition duration-300">All Products</a>`;
-            desktopHTML += `<div class="relative group"><button class="text-gray-600 hover:text-teal-500 transition duration-300 flex items-center">Clothing<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button><div class="absolute hidden group-hover:block bg-white shadow-lg rounded-md mt-2 py-2 w-40 z-10"><a href="#category/Stitched" onclick="handleNav(event, '#category/Stitched')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50">Stitched</a><a href="#category/Unstitched" onclick="handleNav(event, '#category/Unstitched')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50">Unstitched</a></div></div>`;
+            desktopHTML += `<div class="relative group"><button class="text-gray-600 hover:text-teal-500 transition duration-300 flex items-center py-2">Clothing<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button><div class="absolute hidden group-hover:block bg-white shadow-lg rounded-md mt-0 py-2 w-40 z-10 top-full"><a href="#category/Stitched" onclick="handleNav(event, '#category/Stitched')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50">Stitched</a><a href="#category/Unstitched" onclick="handleNav(event, '#category/Unstitched')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50">Unstitched</a></div></div>`;
             desktopHTML += otherCategories.map(cat => `<a href="#category/${cat}" onclick="handleNav(event, '#category/${cat}')" class="text-gray-600 hover:text-teal-500 transition duration-300">${cat}</a>`).join('');
             desktopContainer.innerHTML = desktopHTML;
 
             const mobileContainer = document.getElementById('mobile-menu');
             let mobileHTML = `<a href="#home" onclick="handleNav(event, '#home')" class="block py-2 px-6 text-sm hover:bg-teal-50">All Products</a>`;
-            mobileHTML += `<div class="px-6 py-2 text-sm font-semibold text-gray-400">Clothing</div>`;
-            mobileHTML += `<a href="#category/Stitched" onclick="handleNav(event, '#category/Stitched')" class="block py-2 pl-10 text-sm hover:bg-teal-50">Stitched</a>`;
-            mobileHTML += `<a href="#category/Unstitched" onclick="handleNav(event, '#category/Unstitched')" class="block py-2 pl-10 text-sm hover:bg-teal-50">Unstitched</a>`;
+            mobileHTML += `<div><button id="mobile-clothing-toggle" class="w-full flex justify-between items-center py-2 px-6 text-sm hover:bg-teal-50"><span>Clothing</span><svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button><div id="mobile-clothing-submenu" class="hidden pl-4"><a href="#category/Stitched" onclick="handleNav(event, '#category/Stitched')" class="block py-2 pl-6 text-sm hover:bg-teal-50">Stitched</a><a href="#category/Unstitched" onclick="handleNav(event, '#category/Unstitched')" class="block py-2 pl-6 text-sm hover:bg-teal-50">Unstitched</a></div></div>`;
             if (otherCategories.length > 0) {
                 mobileHTML += `<div class="border-t my-2"></div>`;
                 mobileHTML += otherCategories.map(cat => `<a href="#category/${cat}" onclick="handleNav(event, '#category/${cat}')" class="block py-2 px-6 text-sm hover:bg-teal-50">${cat}</a>`).join('');
             }
             mobileContainer.innerHTML = mobileHTML;
+            document.getElementById('mobile-clothing-toggle').addEventListener('click', (e) => {
+                e.currentTarget.querySelector('svg').classList.toggle('rotate-180');
+                document.getElementById('mobile-clothing-submenu').classList.toggle('hidden');
+            });
         };
         
         const renderDeliveryZones = (charges) => {
@@ -369,7 +377,11 @@
             window.location.hash = '#home';
         });
         
-        window.handleNav = (event, path) => { event.preventDefault(); window.location.hash = path; };
+        window.handleNav = (event, path) => {
+            event.preventDefault();
+            window.location.hash = path;
+            document.getElementById('mobile-menu').classList.add('hidden');
+        };
         window.addEventListener('hashchange', handleRouteChange);
         document.getElementById('mobile-menu-button').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('hidden'));
         
