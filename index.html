@@ -4,12 +4,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sundorica</title>
+    <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        iframe { width: 100%; height: 100%; border: none; }
+        :root{--header-height:3.5rem;--first-color:hsl(270, 60%, 55%);--title-color:hsl(0, 0%, 15%);--text-color:hsl(0, 0%, 35%);--body-color:hsl(0, 0%, 99%);--container-color:#fff;--border-color:hsl(0, 0%, 90%);--body-font:'Noto Sans Bengali', sans-serif;--logo-font:'Orbitron', sans-serif;--h1-font-size:1.8rem;--h2-font-size:1.25rem}body{background-color:var(--body-color);color:var(--text-color);font-family:var(--body-font)}a{text-decoration:none;color:var(--text-color)}img{max-width:100%;height:auto;display:block}.container{max-width:1024px;margin-left:auto;margin-right:auto;padding:0 1.5rem}#loader{position:fixed;top:0;left:0;width:100%;height:100%;background-color:var(--body-color);display:flex;justify-content:center;align-items:center;z-index:2000}.spinner{width:50px;height:50px;border:5px solid var(--border-color);border-top-color:var(--first-color);border-radius:50%;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#header{width:100%;position:fixed;top:0;left:0;z-index:100;background-color:var(--body-color);box-shadow:0 1px 4px hsla(0, 4%, 15%, .1)}.nav{height:var(--header-height);display:flex;justify-content:space-between;align-items:center}.nav__logo{font-family:var(--logo-font);font-weight:700;color:var(--title-color);cursor:pointer}#main-content{padding-top:calc(var(--header-height) + 2rem);padding-bottom:2rem;min-height:80vh}.product-grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr))}.product-card{display:block;background-color:var(--container-color);border-radius:.5rem;overflow:hidden;box-shadow:0 2px 8px hsla(0, 4%, 15%, .1);transition:transform .3s;cursor:pointer}.product-card:hover{transform:translateY(-5px)}.product-card__image{width:100%;aspect-ratio:2 / 3;object-fit:cover}.product-card__info{padding:1rem}.product-card__name{margin-bottom:.5rem;color:var(--title-color)}.product-page-container{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:flex-start}.product-page__images .main-image{border-radius:.5rem;margin-bottom:1rem}.product-page__images .thumbnails{display:grid;grid-template-columns:repeat(4, 1fr);gap:.5rem}.product-page__images .thumbnail{border-radius:.5rem;cursor:pointer;border:2px solid transparent}.product-page__images .thumbnail.active{border-color:var(--first-color)}.product-page__info h1{font-size:var(--h1-font-size);color:var(--title-color)}.product-page__info .sku{font-size:.8rem;color:var(--text-color-light);margin:.5rem 0 1rem}.product-page__info .price{font-size:var(--h2-font-size);font-weight:700}.product-page__description{margin-top:3rem;grid-column:1 / -1}#footer{padding:2rem 0;text-align:center;border-top:1px solid var(--border-color);margin-top:2rem}@media (max-width:768px){.product-page-container{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
-    <iframe src="https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec"></iframe>
+    <div id="loader"><div class="spinner"></div></div>
+    <header id="header"><nav class="nav container"><a id="logo-link" class="nav__logo">Sundorica</a></nav></header>
+    <main id="main-content" class="container"></main>
+    <footer id="footer"><p>&copy; 2025 Sundorica. All Rights Reserved.</p></footer>
+
+    <script>
+        // ## ধাপ ২ থেকে পাওয়া আপনার Apps Script URL টি এখানে বসান ##
+        const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContent = document.getElementById('main-content');
+            const loader = document.getElementById('loader');
+            const logoLink = document.getElementById('logo-link');
+
+            const showLoader = () => loader.style.display = 'flex';
+            const hideLoader = () => loader.style.display = 'none';
+
+            const handleError = (error) => {
+                console.error("Error:", error);
+                mainContent.innerHTML = `<p>An error occurred. Please try again.</p>`;
+                hideLoader();
+            };
+
+            // API থেকে ডেটা আনার জন্য fetch ব্যবহার করা হচ্ছে
+            const fetchData = async (sku = null) => {
+                showLoader();
+                const url = sku ? `${API_URL}?product=${sku}` : API_URL;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error);
+                    return data;
+                } catch (error) {
+                    handleError(error);
+                } finally {
+                    hideLoader();
+                }
+            };
+            
+            const renderHomePage = (products) => {
+                document.title = 'Sundorica';
+                mainContent.innerHTML = `<div class="product-grid"></div>`;
+                const grid = mainContent.querySelector('.product-grid');
+                products.forEach(p => {
+                    const card = document.createElement('a');
+                    card.className = 'product-card';
+                    const productUrl = `?product=${p.sku}`;
+                    card.href = productUrl;
+                    card.onclick = (e) => {
+                        e.preventDefault();
+                        history.pushState({ sku: p.sku }, p.name, productUrl);
+                        router();
+                    };
+                    card.innerHTML = `<img src="${p.image || ''}" alt="${p.name}" class="product-card__image"><div class="product-card__info"><h3 class="product-card__name">${p.name}</h3><p>৳${p.price}</p></div>`;
+                    grid.appendChild(card);
+                });
+            };
+
+            const renderProductPage = (product) => {
+                document.title = product.name;
+                mainContent.innerHTML = `
+                    <div class="product-page-container">
+                        <div class="product-page__images">
+                            <img src="${product.images[0] || ''}" class="main-image">
+                            <div class="thumbnails">${(product.images || []).map((img, i) => `<img src="${img}" class="thumbnail ${i === 0 ? 'active' : ''}">`).join('')}</div>
+                        </div>
+                        <div class="product-page__info"><h1>${product.name}</h1><p class="sku">SKU: ${product.sku}</p><p class="price">৳${product.price}</p></div>
+                        <div class="product-page__description"><h3>Description</h3><div>${product.description || ''}</div></div>
+                    </div>`;
+
+                const mainImage = mainContent.querySelector('.main-image');
+                mainContent.querySelectorAll('.thumbnail').forEach(thumb => {
+                    thumb.addEventListener('click', () => {
+                        mainContent.querySelector('.thumbnail.active')?.classList.remove('active');
+                        thumb.classList.add('active');
+                        mainImage.src = thumb.src;
+                    });
+                });
+            };
+
+            const router = async () => {
+                const params = new URLSearchParams(window.location.search);
+                const sku = params.get('product');
+                const data = await fetchData(sku);
+                if (data) {
+                    if (sku) {
+                        renderProductPage(data.product);
+                    } else {
+                        renderHomePage(data.products);
+                    }
+                }
+            };
+
+            logoLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                history.pushState({}, 'Sundorica', window.location.pathname);
+                router();
+            });
+
+            window.addEventListener('popstate', router); // ব্রাউজারের back/forward বাটনের জন্য
+            router(); // প্রথমবার পেজ লোড হওয়ার জন্য
+        });
+    </script>
 </body>
 </html>
