@@ -1,31 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="bn">
 <head>
-    <title>Parent Test Page</title>
-    <style>iframe { width: 100%; height: 50vh; border: 1px solid black; }</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sundorica</title>
+    <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
 </head>
 <body>
-    <h1>GitHub Page (Parent)</h1>
-    <button id="send-to-child">Send Message to Child</button>
-    <p id="message-from-child"></p>
     <iframe id="app-frame"></iframe>
 
     <script>
         const iframe = document.getElementById('app-frame');
-        const testUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec'; // এখানে নতুন URL টি বসান
-        iframe.src = testUrl;
+        // আপনার Apps Script URL টি এখানে বসান
+        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec';
 
-        document.getElementById('send-to-child').addEventListener('click', () => {
-            const message = { type: 'hello', text: 'Hello from GitHub!' };
-            console.log('PARENT: Sending message ->', message);
-            iframe.contentWindow.postMessage(message, '*');
-        });
+        function routeApp() {
+            const currentUrl = new URL(window.location.href);
+            // iframe-এর src হবে Apps Script URL + GitHub পেজের প্যারামিটার
+            iframe.src = `${appsScriptUrl}${currentUrl.search}`;
+            console.log("PARENT: Setting iframe src to:", iframe.src);
+        }
 
         window.addEventListener('message', (event) => {
-            // এখানে অরিজিন চেক করা হচ্ছে না শুধু পরীক্ষার জন্য
-            console.log('PARENT: Received message ->', event.data);
-            document.getElementById('message-from-child').innerText = 'Message from child: ' + event.data.text;
+            console.log("PARENT: Message received", event);
+            if (event.origin !== 'https://script.google.com') {
+                console.warn("PARENT: Message rejected from origin:", event.origin);
+                return;
+            }
+            const data = event.data;
+            if (data && data.type === 'navigate') {
+                const newUrl = new URL(window.location.origin + window.location.pathname);
+                newUrl.search = data.path;
+                console.log("PARENT: Updating URL to:", newUrl.href);
+                history.pushState({ sku: data.sku }, data.title, newUrl.href);
+                document.title = data.title || 'Sundorica';
+            }
         });
+        
+        window.addEventListener('popstate', routeApp);
+        routeApp(); // Initial load
     </script>
 </body>
 </html>
