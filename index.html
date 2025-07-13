@@ -8,6 +8,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1475283116725734');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1475283116725734&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
     <style>
         body { font-family: 'Roboto', sans-serif; background-color: #f7fafc; }
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
@@ -32,13 +51,8 @@
         #alert-popup {
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
         }
-        /* Desktop dropdown fix */
-        .group .group-hover\:block {
-            display: none;
-        }
-        .group:hover .group-hover\:block {
-            display: block;
-        }
+        .group .group-hover\:block { display: none; }
+        .group:hover .group-hover\:block { display: block; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -56,18 +70,14 @@
         <nav class="container mx-auto px-4 sm:px-6 h-20 flex items-center">
             <a href="#home" onclick="handleNav(event, '#home')" class="text-3xl font-orbitron font-bold text-black">Sundorica</a>
             <div class="flex-grow"></div>
-            <div class="hidden md:flex items-center space-x-4" id="desktop-menu-container">
-                <!-- Menu will be dynamically inserted here -->
-            </div>
+            <div class="hidden md:flex items-center space-x-4" id="desktop-menu-container"></div>
             <div class="flex-grow"></div>
             <div class="flex items-center space-x-4">
                 <a href="#cart" onclick="handleNav(event, '#cart')" class="relative text-gray-600 hover:text-teal-500"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg><span id="cart-count" class="absolute -top-2 -right-2 bg-teal-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span></a>
                 <button id="mobile-menu-button" class="md:hidden text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg></button>
             </div>
         </nav>
-        <div id="mobile-menu" class="hidden md:hidden bg-white">
-            <!-- Mobile menu will be dynamically inserted here -->
-        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white"></div>
     </header>
 
     <!-- Main Content Area -->
@@ -141,17 +151,11 @@
 
         const handleRouteChange = () => {
             const hash = window.location.hash || '#home';
-            const decodedHash = decodeURIComponent(hash); // Decode the hash
+            const decodedHash = decodeURIComponent(hash);
             const [route, param] = decodedHash.substring(1).split('/');
-            
             Object.values(views).forEach(view => view.classList.add('hidden'));
-            
             let productsToRender = allProducts, pageTitle = "All Products";
-            if (route === 'category' && param) { 
-                productsToRender = allProducts.filter(p => p.Category === param); 
-                pageTitle = param; 
-            }
-
+            if (route === 'category' && param) { productsToRender = allProducts.filter(p => p.Category === param); pageTitle = param; }
             if (route === 'home' || route === 'category') { views.home.classList.remove('hidden'); renderProductGrid(productsToRender); document.getElementById('page-title').textContent = pageTitle; } 
             else if (route === 'product' && param) { selectedProduct = allProducts.find(p => p.SKU == param); if (selectedProduct) { views.product.classList.remove('hidden'); renderProductPage(selectedProduct); } else { window.location.hash = '#home'; } } 
             else if (route === 'cart') { views.cart.classList.remove('hidden'); renderCartPage(); } 
@@ -186,6 +190,16 @@
                         btn.onclick = () => { sizeOptions.querySelectorAll('.size-btn').forEach(b => b.classList.remove('bg-teal-500', 'text-white', 'border-teal-500')); btn.classList.add('bg-teal-500', 'text-white', 'border-teal-500'); selectedSize = s.size; };
                         sizeOptions.appendChild(btn);
                     }
+                });
+            }
+            // Meta Pixel ViewContent Event
+            if (typeof fbq === 'function') {
+                fbq('track', 'ViewContent', {
+                    content_name: product.Name,
+                    content_ids: [product.SKU],
+                    content_type: 'product',
+                    value: product.Price,
+                    currency: 'BDT'
                 });
             }
         };
@@ -232,7 +246,7 @@
             if (cart.length === 0) { container.innerHTML = `<div class="text-center text-gray-500 py-8">Your cart is empty. <a href="#home" class="text-teal-600 hover:underline">Continue shopping</a>.</div>`; return; }
             let itemsHTML = cart.map((item, index) => `<div class="flex items-center justify-between border-b py-4 gap-2"><div class="flex items-center gap-4 flex-1"><img src="${item.image}" alt="${item.name}" class="w-16 h-24 md:w-20 md:h-28 object-cover rounded-md"><div><p class="font-semibold">${item.name}</p>${item.size ? `<p class="text-sm text-gray-500">Size: ${item.size}</p>` : ''}<button onclick="removeFromCart(${index})" class="text-red-500 text-sm hover:underline">Remove</button></div></div><div class="flex items-center gap-2 md:gap-4"><input type="number" value="${item.quantity}" min="1" class="w-12 md:w-16 text-center border rounded" onchange="updateQuantity(${index}, this.value)"><p class="font-semibold w-20 md:w-24 text-right">৳${(item.price * item.quantity).toLocaleString()}</p></div></div>`).join('');
             const { subtotal } = calculateTotal();
-            container.innerHTML = `${itemsHTML}<div class="mt-6 text-right"><p class="text-2xl font-bold">Subtotal: ৳${subtotal.toLocaleString()}</p><a href="#checkout" class="inline-block mt-4 bg-teal-500 text-white py-3 px-8 rounded-lg font-semibold text-lg hover:bg-teal-600 transition">Proceed to Checkout</a></div>`;
+            container.innerHTML = `${itemsHTML}<div class="mt-6 text-right"><p class="text-2xl font-bold">Subtotal: ৳${subtotal.toLocaleString()}</p><a href="#checkout" id="proceed-to-checkout-btn" class="inline-block mt-4 bg-teal-500 text-white py-3 px-8 rounded-lg font-semibold text-lg hover:bg-teal-600 transition">Proceed to Checkout</a></div>`;
         };
         
         const renderCheckoutPage = () => {
@@ -330,6 +344,16 @@
             saveCart();
             updateCartCount();
             showAlert('Added to cart!', true);
+            // Meta Pixel AddToCart Event
+            if (typeof fbq === 'function') {
+                fbq('track', 'AddToCart', {
+                    content_name: selectedProduct.Name,
+                    content_ids: [selectedProduct.SKU],
+                    content_type: 'product',
+                    value: selectedProduct.Price,
+                    currency: 'BDT'
+                });
+            }
         });
 
         document.getElementById('buy-now-btn').addEventListener('click', () => {
@@ -363,6 +387,18 @@
                 const result = await response.json();
                 if (result.status !== 'success') throw new Error(result.message);
                 
+                // Meta Pixel Purchase Event
+                if (typeof fbq === 'function') {
+                    fbq('track', 'Purchase', {
+                        value: result.data.totalAmount,
+                        currency: 'BDT',
+                        content_ids: cart.map(item => item.sku),
+                        content_type: 'product',
+                        num_items: cart.reduce((sum, item) => sum + item.quantity, 0),
+                        order_id: result.data.orderId
+                    });
+                }
+
                 document.getElementById('order-id-display').textContent = result.data.orderId;
                 document.getElementById('order-amount-display').textContent = `৳${result.data.totalAmount.toLocaleString()}`;
                 document.getElementById('thank-you-modal').classList.remove('hidden');
@@ -372,6 +408,21 @@
                 showAlert(`Order Failed: ${error.message}`);
             } finally {
                 orderBtn.disabled = false; btnText.classList.remove('hidden'); loader.classList.add('hidden');
+            }
+        });
+        
+        // Add event listener for InitiateCheckout
+        document.body.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'proceed-to-checkout-btn') {
+                if (typeof fbq === 'function' && cart.length > 0) {
+                    const { subtotal } = calculateTotal();
+                    fbq('track', 'InitiateCheckout', {
+                        contents: cart.map(item => ({id: item.sku, quantity: item.quantity})),
+                        num_items: cart.reduce((sum, item) => sum + item.quantity, 0),
+                        value: subtotal,
+                        currency: 'BDT'
+                    });
+                }
             }
         });
 
