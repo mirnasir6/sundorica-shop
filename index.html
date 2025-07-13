@@ -29,6 +29,10 @@
             align-items: center;
             justify-content: center;
         }
+        /* New Alert Popup Style */
+        #alert-popup {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -77,8 +81,10 @@
     <!-- Thank You Popup -->
     <div id="thank-you-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4"><div class="bg-white rounded-lg shadow-xl w-full max-w-md p-8 text-center"><svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h2 class="text-2xl font-bold mt-4">Thank You!</h2><p class="text-gray-600 mt-2">Your order has been placed successfully.</p><div class="mt-6 text-left bg-gray-100 p-4 rounded-lg"><p class="text-sm">Order ID: <strong id="order-id-display" class="font-mono"></strong></p><p class="text-sm">Total Amount: <strong id="order-amount-display"></strong></p></div><button id="close-thank-you-modal" class="w-full mt-6 bg-teal-500 text-white py-2 rounded-lg font-semibold hover:bg-teal-600 transition">Continue Shopping</button></div></div>
 
-    <!-- Simple Alert/Popup -->
-    <div id="alert-popup" class="fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg hidden transform translate-x-full transition-transform duration-300 z-[70]"></div>
+    <!-- NEW Alert/Popup Structure -->
+    <div id="alert-popup" class="fixed bottom-5 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg text-white opacity-0 transform translate-y-full" style="z-index: 100;">
+        <!-- Message will be inserted here -->
+    </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -277,9 +283,13 @@
         const showAlert = (message, isSuccess = false) => {
             const alertPopup = document.getElementById('alert-popup');
             alertPopup.textContent = message;
-            alertPopup.className = `fixed top-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-transform duration-300 z-[70] ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`;
-            alertPopup.classList.remove('translate-x-full');
-            setTimeout(() => { alertPopup.classList.add('translate-x-full'); }, 3500);
+            alertPopup.className = `fixed bottom-5 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg text-white transform transition-transform duration-300 z-[100] ${isSuccess ? 'bg-green-600' : 'bg-red-600'}`;
+            alertPopup.classList.remove('translate-y-full', 'opacity-0');
+            alertPopup.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                alertPopup.classList.remove('translate-y-0', 'opacity-100');
+                alertPopup.classList.add('translate-y-full', 'opacity-0');
+            }, 1500);
         };
 
         document.getElementById('add-to-cart-btn').addEventListener('click', () => {
