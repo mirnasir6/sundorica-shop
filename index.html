@@ -141,10 +141,17 @@
 
         const handleRouteChange = () => {
             const hash = window.location.hash || '#home';
-            const [route, param] = hash.substring(1).split('/');
+            const decodedHash = decodeURIComponent(hash); // Decode the hash
+            const [route, param] = decodedHash.substring(1).split('/');
+            
             Object.values(views).forEach(view => view.classList.add('hidden'));
+            
             let productsToRender = allProducts, pageTitle = "All Products";
-            if (route === 'category') { productsToRender = allProducts.filter(p => p.Category === param); pageTitle = param; }
+            if (route === 'category' && param) { 
+                productsToRender = allProducts.filter(p => p.Category === param); 
+                pageTitle = param; 
+            }
+
             if (route === 'home' || route === 'category') { views.home.classList.remove('hidden'); renderProductGrid(productsToRender); document.getElementById('page-title').textContent = pageTitle; } 
             else if (route === 'product' && param) { selectedProduct = allProducts.find(p => p.SKU == param); if (selectedProduct) { views.product.classList.remove('hidden'); renderProductPage(selectedProduct); } else { window.location.hash = '#home'; } } 
             else if (route === 'cart') { views.cart.classList.remove('hidden'); renderCartPage(); } 
