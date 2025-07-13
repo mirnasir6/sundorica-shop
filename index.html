@@ -44,18 +44,20 @@
     <!-- Header -->
     <header id="page-header" class="bg-white shadow-md sticky top-0 z-40">
         <nav class="container mx-auto px-4 sm:px-6 h-20 flex items-center">
-            <a href="#" onclick="handleNav(event, '#home')" class="text-3xl font-orbitron font-bold text-black">Sundorica</a>
+            <a href="#home" onclick="handleNav(event, '#home')" class="text-3xl font-orbitron font-bold text-black">Sundorica</a>
             <div class="flex-grow"></div>
-            <div class="hidden md:flex items-center space-x-4" id="desktop-category-menu">
-                <a href="#" onclick="handleNav(event, '#home')" class="text-gray-600 hover:text-teal-500 transition duration-300">All Products</a>
+            <div class="hidden md:flex items-center space-x-4" id="desktop-menu-container">
+                <!-- Menu will be dynamically inserted here -->
             </div>
             <div class="flex-grow"></div>
             <div class="flex items-center space-x-4">
-                <a href="#cart" class="relative text-gray-600 hover:text-teal-500"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg><span id="cart-count" class="absolute -top-2 -right-2 bg-teal-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span></a>
+                <a href="#cart" onclick="handleNav(event, '#cart')" class="relative text-gray-600 hover:text-teal-500"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg><span id="cart-count" class="absolute -top-2 -right-2 bg-teal-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span></a>
                 <button id="mobile-menu-button" class="md:hidden text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg></button>
             </div>
         </nav>
-        <div id="mobile-menu" class="hidden md:hidden bg-white"></div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white">
+            <!-- Mobile menu will be dynamically inserted here -->
+        </div>
     </header>
 
     <!-- Main Content Area -->
@@ -170,12 +172,26 @@
         };
 
         const renderCategories = (products) => {
-            const categories = [...new Set(products.map(p => p.Category))].filter(Boolean);
-            const desktopContainer = document.getElementById('desktop-category-menu');
+            const allCategories = [...new Set(products.map(p => p.Category))].filter(Boolean);
+            const clothingSubCategories = ['Stitched', 'Unstitched'];
+            const otherCategories = allCategories.filter(cat => !clothingSubCategories.includes(cat));
+
+            const desktopContainer = document.getElementById('desktop-menu-container');
+            let desktopHTML = `<a href="#home" onclick="handleNav(event, '#home')" class="text-gray-600 hover:text-teal-500 transition duration-300">All Products</a>`;
+            desktopHTML += `<div class="relative group"><button class="text-gray-600 hover:text-teal-500 transition duration-300 flex items-center">Clothing<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button><div class="absolute hidden group-hover:block bg-white shadow-lg rounded-md mt-2 py-2 w-40 z-10"><a href="#category/Stitched" onclick="handleNav(event, '#category/Stitched')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50">Stitched</a><a href="#category/Unstitched" onclick="handleNav(event, '#category/Unstitched')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50">Unstitched</a></div></div>`;
+            desktopHTML += otherCategories.map(cat => `<a href="#category/${cat}" onclick="handleNav(event, '#category/${cat}')" class="text-gray-600 hover:text-teal-500 transition duration-300">${cat}</a>`).join('');
+            desktopContainer.innerHTML = desktopHTML;
+
             const mobileContainer = document.getElementById('mobile-menu');
-            const menuHTML = categories.map(cat => `<a href="#category/${cat}" class="text-gray-600 hover:text-teal-500 transition duration-300">${cat}</a>`).join('');
-            desktopContainer.innerHTML = `<a href="#home" class="text-gray-600 hover:text-teal-500 transition duration-300">All Products</a>` + menuHTML;
-            mobileContainer.innerHTML = `<a href="#home" class="block py-2 px-6 text-sm hover:bg-teal-50">All Products</a>` + categories.map(cat => `<a href="#category/${cat}" class="block py-2 px-6 text-sm hover:bg-teal-50">${cat}</a>`).join('');
+            let mobileHTML = `<a href="#home" onclick="handleNav(event, '#home')" class="block py-2 px-6 text-sm hover:bg-teal-50">All Products</a>`;
+            mobileHTML += `<div class="px-6 py-2 text-sm font-semibold text-gray-400">Clothing</div>`;
+            mobileHTML += `<a href="#category/Stitched" onclick="handleNav(event, '#category/Stitched')" class="block py-2 pl-10 text-sm hover:bg-teal-50">Stitched</a>`;
+            mobileHTML += `<a href="#category/Unstitched" onclick="handleNav(event, '#category/Unstitched')" class="block py-2 pl-10 text-sm hover:bg-teal-50">Unstitched</a>`;
+            if (otherCategories.length > 0) {
+                mobileHTML += `<div class="border-t my-2"></div>`;
+                mobileHTML += otherCategories.map(cat => `<a href="#category/${cat}" onclick="handleNav(event, '#category/${cat}')" class="block py-2 px-6 text-sm hover:bg-teal-50">${cat}</a>`).join('');
+            }
+            mobileContainer.innerHTML = mobileHTML;
         };
         
         const renderDeliveryZones = (charges) => {
@@ -232,8 +248,8 @@
         };
         const updateMainImage = (src, activeThumb) => { document.getElementById('main-product-image').src = src; Array.from(document.getElementById('thumbnail-container').children).forEach(c => c.classList.remove('active')); activeThumb.classList.add('active'); };
         
-        const openLightbox = (index) => { currentLightboxIndex = index; document.getElementById('lightbox-image').src = selectedProduct.Images[currentLightboxIndex]; lightboxModal.classList.remove('hidden'); };
-        const closeLightbox = () => lightboxModal.classList.add('hidden');
+        const openLightbox = (index) => { currentLightboxIndex = index; document.getElementById('lightbox-image').src = selectedProduct.Images[currentLightboxIndex]; document.getElementById('lightbox-modal').classList.remove('hidden'); };
+        const closeLightbox = () => document.getElementById('lightbox-modal').classList.add('hidden');
         const showNextImage = () => { currentLightboxIndex = (currentLightboxIndex + 1) % selectedProduct.Images.length; document.getElementById('lightbox-image').src = selectedProduct.Images[currentLightboxIndex]; };
         const showPrevImage = () => { currentLightboxIndex = (currentLightboxIndex - 1 + selectedProduct.Images.length) % selectedProduct.Images.length; document.getElementById('lightbox-image').src = selectedProduct.Images[currentLightboxIndex]; };
         document.getElementById('main-product-image').addEventListener('click', () => openLightbox(currentLightboxIndex));
@@ -285,7 +301,8 @@
             formData.append('orderData', JSON.stringify(payload));
 
             try {
-                const response = await fetch(WEB_APP_URL, { method: 'POST', body: formData });
+                // Use a direct fetch without 'no-cors' to handle the redirect and get the final response
+                const response = await fetch(WEB_APP_URL, { method: 'POST', body: formData, redirect: 'follow' });
                 if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
                 const result = await response.json();
                 if (result.status !== 'success') throw new Error(result.message);
