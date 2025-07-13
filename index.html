@@ -15,34 +15,32 @@
 
     <script>
         const iframe = document.getElementById('app-frame');
-        // আপনার Apps Script URL টি এখানে বসান
+        // এই URL টি সঠিক আছে কিনা, অনুগ্রহ করে আবার চেক করুন
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec';
 
         function routeApp() {
             const currentUrl = new URL(window.location.href);
-            // iframe-এর src হবে Apps Script URL + GitHub পেজের প্যারামিটার
             iframe.src = `${appsScriptUrl}${currentUrl.search}`;
-            console.log("PARENT: Setting iframe src to:", iframe.src);
         }
 
+        // এই অংশটি আপনার ফাইলে আছে কিনা নিশ্চিত করুন
         window.addEventListener('message', (event) => {
-            console.log("PARENT: Message received", event);
             if (event.origin !== 'https://script.google.com') {
-                console.warn("PARENT: Message rejected from origin:", event.origin);
                 return;
             }
             const data = event.data;
             if (data && data.type === 'navigate') {
                 const newUrl = new URL(window.location.origin + window.location.pathname);
                 newUrl.search = data.path;
-                console.log("PARENT: Updating URL to:", newUrl.href);
-                history.pushState({ sku: data.sku }, data.title, newUrl.href);
-                document.title = data.title || 'Sundorica';
+                if (window.location.href !== newUrl.href) {
+                    history.pushState({ sku: data.sku }, data.title, newUrl.href);
+                    document.title = data.title || 'Sundorica';
+                }
             }
         });
         
         window.addEventListener('popstate', routeApp);
-        routeApp(); // Initial load
+        routeApp();
     </script>
 </body>
 </html>
