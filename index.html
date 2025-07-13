@@ -5,279 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sundorica</title>
     <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
     <style>
-        /*=============== BASE ===============*/
-        :root{--header-height:3.5rem;--first-color:hsl(270, 60%, 55%);--title-color:hsl(0, 0%, 15%);--text-color:hsl(0, 0%, 35%);--body-color:hsl(0, 0%, 99%);--container-color:#fff;--border-color:hsl(0, 0%, 90%);--body-font:'Noto Sans Bengali', sans-serif;--logo-font:'Orbitron', sans-serif;--h1-font-size:1.8rem;--h2-font-size:1.25rem;--z-fixed:100;--z-modal:1000}
-        body.dark-mode{--title-color:hsl(0, 0%, 95%);--text-color:hsl(0, 0%, 75%);--body-color:hsl(210, 10%, 12%);--container-color:hsl(210, 10%, 16%);--border-color:hsl(210, 10%, 25%)}
-        *{box-sizing:border-box;padding:0;margin:0}
-        body{background-color:var(--body-color);color:var(--text-color);font-family:var(--body-font)}
-        a{text-decoration:none;color:var(--text-color)}
-        img{max-width:100%;height:auto;display:block}
-        .container{max-width:1120px;margin-left:auto;margin-right:auto;padding:0 1rem}
-        
-        /*=============== HEADER & NAV (New Design) ===============*/
-        #header{width:100%;position:fixed;top:0;left:0;z-index:var(--z-fixed);background-color:var(--body-color);box-shadow:0 1px 4px hsla(0, 4%, 15%, .1)}
-        .nav{height:var(--header-height);display:flex;justify-content:space-between;align-items:center}
-        .nav__logo{font-family:var(--logo-font);font-weight:700;color:var(--title-color);cursor:pointer}
-        .nav__menu{position:fixed;top:0;right:-100%;width:70%;height:100%;background-color:var(--body-color);box-shadow:-2px 0 12px hsla(0,0%,0%,.1);padding:4rem 2rem 0;transition:.4s}
-        .nav__list{display:flex;flex-direction:column;gap:2rem}
-        .nav__link{font-weight:500}
-        .nav__link:hover{color:var(--first-color)}
-        .nav__close{position:absolute;top:1rem;right:1rem;font-size:1.5rem;cursor:pointer}
-        .nav__actions{display:flex;align-items:center;gap:1rem}
-        .nav__actions i{font-size:1.25rem;cursor:pointer;color:var(--title-color)}
-        .nav__toggle{display:inline-flex} /* Mobile menu icon */
-        .show-menu{right:0}
-        
-        /* Submenu */
-        .submenu__item{padding-left:1.5rem}
-        .submenu{max-height:0;overflow:hidden;transition:max-height .4s ease-out}
-        .submenu__item a{display:block;padding:.5rem 0}
-        .has-submenu > a {display:flex;justify-content:space-between;align-items:center}
-
-        /* Search */
-        .search__form{position:fixed;top:var(--header-height);left:0;width:100%;background-color:var(--body-color);padding:1rem;box-shadow:0 2px 8px hsla(0,0%,0%,.1);transform:translateY(-150%);transition:.4s}
-        .search__form input{width:100%;padding:.8rem;border:1px solid var(--border-color);border-radius:.5rem}
-        .show-search{transform:translateY(0)}
-        
-        /*=============== LOADER & MAIN CONTENT ===============*/
-        #loader{position:fixed;top:0;left:0;width:100%;height:100%;background-color:var(--body-color);display:flex;justify-content:center;align-items:center;z-index:2000}
-        .spinner{width:50px;height:50px;border:5px solid var(--border-color);border-top-color:var(--first-color);border-radius:50%;animation:spin 1s linear infinite}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        #main-content{padding-top:calc(var(--header-height) + 2rem);padding-bottom:2rem;min-height:80vh}
-        
-        /*=============== PRODUCT GRID ===============*/
-        .product-grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr))}
-        .product-card{display:block;background-color:var(--container-color);border-radius:.5rem;overflow:hidden;box-shadow:0 2px 8px hsla(0, 4%, 15%, .1);transition:transform .3s;cursor:pointer}
-        .product-card:hover{transform:translateY(-5px)}
-        .product-card__image{width:100%;aspect-ratio:2 / 3;object-fit:cover;background-color:#eee}
-        .product-card__info{padding:1rem;text-align:center}
-        .product-card__name{margin-bottom:.5rem;color:var(--title-color)}
-        
-        /*=============== PRODUCT PAGE ===============*/
-        .product-page-container{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:flex-start}
-        .product-page__images .main-image{border-radius:.5rem;margin-bottom:1rem}
-        .product-page__images .thumbnails{display:grid;grid-template-columns:repeat(4, 1fr);gap:.5rem}
-        .product-page__images .thumbnail{border-radius:.5rem;cursor:pointer;border:2px solid transparent}.product-page__images .thumbnail.active{border-color:var(--first-color)}
-        .product-page__info h1{font-size:var(--h1-font-size);color:var(--title-color)}
-        .product-page__info .sku{font-size:.8rem;color:var(--text-color-light);margin:.5rem 0 1rem}
-        .product-page__info .price{font-size:var(--h2-font-size);font-weight:700}
-        .product-page__description{margin-top:3rem;grid-column:1 / -1}
-        #footer{padding:2rem 0;text-align:center;border-top:1px solid var(--border-color);margin-top:2rem}
-
-        /*=============== RESPONSIVE DESIGN ===============*/
-        @media screen and (max-width: 768px) {
-            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-            .product-page-container { grid-template-columns: 1fr; }
-        }
-        @media screen and (min-width: 769px) {
-            .nav__menu{position:static;width:auto;height:auto;background:none;box-shadow:none;padding:0}
-            .nav__list{flex-direction:row;gap:2.5rem}
-            .nav__close, .nav__toggle{display:none}
-            .submenu{position:absolute;top:100%;left:0;background-color:var(--body-color);box-shadow:0 4px 12px hsla(0,0%,0%,.1);border-radius:.5rem;padding:1rem;min-width:180px;max-height:none;opacity:0;visibility:hidden;transform:translateY(10px);transition:.3s}
-            .has-submenu{position:relative}
-            .has-submenu:hover > .submenu{opacity:1;visibility:visible;transform:translateY(0)}
-            .submenu__item{padding-left:0}
-        }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
-    <div id="loader"><div class="spinner"></div></div>
-
-    <header id="header">
-        <nav class="nav container">
-            <a id="logo-link" class="nav__logo">Sundorica</a>
-
-            <div class="nav__menu" id="nav-menu">
-                <ul class="nav__list">
-                    <li><a href="#" class="nav__link filter-link" data-category="All">All Products</a></li>
-                    <li class="has-submenu">
-                        <a href="#" class="nav__link">Clothing <i class="ri-arrow-down-s-line"></i></a>
-                        <ul class="submenu">
-                            <li class="submenu__item"><a href="#" class="filter-link" data-category="Stitched">Stitched</a></li>
-                            <li class="submenu__item"><a href="#" class="filter-link" data-category="Unstitched">Unstitched</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#" class="nav__link filter-link" data-category="Skin Care">Skin Care</a></li>
-                </ul>
-                <i class="ri-close-line nav__close" id="nav-close"></i>
-            </div>
-            
-            <div class="nav__actions">
-                <i class="ri-search-line" id="search-toggle"></i>
-                <i class="ri-shopping-cart-line" id="cart-toggle"></i>
-                <i class="ri-menu-line nav__toggle" id="nav-toggle"></i>
-            </div>
-        </nav>
-        
-        <form class="search__form" id="search-form">
-            <input type="search" placeholder="Search for products..." id="search-input">
-        </form>
-    </header>
-
-    <main id="main-content" class="container"></main>
-
-    <footer id="footer"><p>&copy; 2025 Sundorica. All Rights Reserved.</p></footer>
+    <iframe id="app-frame"></iframe>
 
     <script>
-    // এই JavaScript কোডটি আপনার আগের API পদ্ধতির উপর ভিত্তি করেই তৈরি।
-    // এটি এখন নতুন UI এর সাথে কাজ করবে।
-    document.addEventListener('DOMContentLoaded', () => {
-        const mainContent = document.getElementById('main-content');
-        const loader = document.getElementById('loader');
-        const logoLink = document.getElementById('logo-link');
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec';
-        let allProducts = []; // To cache products
+        const iframe = document.getElementById('app-frame');
+        // ধাপ ২ থেকে পাওয়া আপনার Apps Script URL টি এখানে বসান
+        const appsScriptUrl = 'YOUR_APPS_SCRIPT_URL_HERE';
 
-        // --- UI Elements ---
-        const navMenu = document.getElementById('nav-menu');
-        const navToggle = document.getElementById('nav-toggle');
-        const navClose = document.getElementById('nav-close');
-        const searchToggle = document.getElementById('search-toggle');
-        const searchForm = document.getElementById('search-form');
-        const searchInput = document.getElementById('search-input');
-
-        // --- UI Logic ---
-        if(navToggle) {
-            navToggle.addEventListener('click', () => {
-                navMenu.classList.add('show-menu');
-            });
-        }
-        if(navClose) {
-            navClose.addEventListener('click', () => {
-                navMenu.classList.remove('show-menu');
-            });
-        }
-        if(searchToggle) {
-            searchToggle.addEventListener('click', () => {
-                searchForm.classList.toggle('show-search');
-            });
-        }
-
-        const showLoader = () => loader.style.display = 'flex';
-        const hideLoader = () => loader.style.display = 'none';
-
-        const handleError = (error) => {
-            console.error("Error:", error);
-            mainContent.innerHTML = `<p>An error occurred. Please try again.</p>`;
-            hideLoader();
-        };
-
-        const fetchData = async (sku = null) => {
-            showLoader();
-            const url = sku ? `${API_URL}?product=${sku}` : API_URL;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.json();
-            } catch (error) {
-                handleError(error);
-            } finally {
-                hideLoader();
-            }
-        };
-        
-        const renderHomePage = (products) => {
-            document.title = 'Sundorica';
-            mainContent.innerHTML = `<div class="product-grid"></div>`;
-            const grid = mainContent.querySelector('.product-grid');
-            if (!products || products.length === 0) {
-                grid.innerHTML = '<p>No products found.</p>';
-                return;
-            }
-            products.forEach(p => {
-                const card = document.createElement('a');
-                card.className = 'product-card';
-                const productUrl = `?product=${p.sku}`;
-                card.href = productUrl;
-                card.onclick = (e) => {
-                    e.preventDefault();
-                    history.pushState({ sku: p.sku }, p.name, productUrl);
-                    router();
-                };
-                card.innerHTML = `<img src="${p.image || ''}" alt="${p.name}" class="product-card__image"><div class="product-card__info"><h3 class="product-card__name">${p.name}</h3><p>৳${p.price}</p></div>`;
-                grid.appendChild(card);
-            });
-        };
-
-        const renderProductPage = (product) => {
-            if (!product) { handleError('Product not found'); return; }
-            document.title = product.name;
-            mainContent.innerHTML = `
-                <div class="product-page-container">
-                    <div class="product-page__images">
-                        <img src="${product.images[0] || ''}" class="main-image">
-                        <div class="thumbnails">${(product.images || []).map((img, i) => `<img src="${img}" class="thumbnail ${i === 0 ? 'active' : ''}">`).join('')}</div>
-                    </div>
-                    <div class="product-page__info"><h1>${product.name}</h1><p class="sku">SKU: ${product.sku}</p><p class="price">৳${product.price}</p></div>
-                    <div class="product-page__description"><h3>Description</h3><div>${product.description || ''}</div></div>
-                </div>`;
-
-            const mainImage = mainContent.querySelector('.main-image');
-            mainContent.querySelectorAll('.thumbnail').forEach(thumb => {
-                thumb.addEventListener('click', () => {
-                    mainContent.querySelector('.thumbnail.active')?.classList.remove('active');
-                    thumb.classList.add('active');
-                    mainImage.src = thumb.src;
-                });
-            });
-        };
-
-        const filterAndRender = (category) => {
-            navMenu.classList.remove('show-menu'); // Close mobile menu on click
-            if(category === 'All') {
-                renderHomePage(allProducts);
-                return;
-            }
-            const filtered = allProducts.filter(p => p.category === category);
-            renderHomePage(filtered);
-        };
-
-        const router = async () => {
+        function setIframeSource() {
             const params = new URLSearchParams(window.location.search);
-            const sku = params.get('product');
-            const data = await fetchData(sku);
-            if (data) {
-                if (sku) {
-                    renderProductPage(data.product);
-                } else {
-                    allProducts = data.products; // Cache products on homepage load
-                    renderHomePage(data.products);
+            iframe.src = `${appsScriptUrl}${window.location.search}`;
+        }
+
+        window.addEventListener('message', (event) => {
+            if (event.origin !== 'https://script.google.com') {
+                return;
+            }
+            const data = event.data;
+            if (data.type === 'navigate' && data.path !== undefined) {
+                const newUrl = new URL(window.location.origin + window.location.pathname);
+                newUrl.search = data.path;
+                if (window.location.href !== newUrl.href) {
+                    history.pushState({ sku: data.sku }, data.title, newUrl.href);
+                    document.title = data.title || 'Sundorica';
                 }
             }
-        };
-        
-        // --- EVENT LISTENERS ---
-        logoLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            history.pushState({}, 'Sundorica', window.location.pathname);
-            renderHomePage(allProducts); // Render from cache
         });
         
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            if(!searchTerm) {
-                renderHomePage(allProducts);
-                return;
-            }
-            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(searchTerm));
-            renderHomePage(filtered);
-        });
-
-        document.querySelectorAll('.filter-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                filterAndRender(link.dataset.category);
-            });
-        });
-        
-        window.addEventListener('popstate', router);
-        router();
-    });
+        window.addEventListener('popstate', setIframeSource);
+        setIframeSource(); // Initial page load
     </script>
 </body>
 </html>
