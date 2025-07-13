@@ -63,7 +63,7 @@
     <!-- Main Content Area -->
     <div id="app-content">
         <main id="home-view" class="hidden container mx-auto px-4 sm:px-6 py-12"><h1 id="page-title" class="text-3xl font-bold text-center mb-10">All Products</h1><div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8"></div></main>
-        <main id="product-view" class="hidden container mx-auto px-4 sm:px-6 py-12"><div class="mb-6"><a href="#" onclick="handleNav(event, '#home')" class="text-teal-600 hover:underline">&larr; Back to all products</a></div><div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12"><div class="flex flex-col-reverse md:flex-row gap-4"><div id="thumbnail-container" class="thumbnail-container flex md:flex-col gap-2 overflow-x-auto md:overflow-x-hidden md:h-[500px] lg:h-[600px]"></div><div class="relative flex-1"><img id="main-product-image" src="" alt="Product" class="w-full h-auto object-contain rounded-lg shadow-md cursor-pointer"></div></div><div class="w-full"><h1 id="product-page-title" class="text-3xl md:text-4xl font-bold mb-2"></h1><div id="product-page-price" class="flex items-baseline space-x-3 mb-6"></div><div id="size-section" class="mb-6 hidden"><h3 class="font-semibold mb-3 text-lg">Size:</h3><div id="size-options" class="flex flex-wrap gap-3"></div></div><div id="stock-section" class="mb-6 hidden"><p class="text-lg">Available Stock: <span id="available-stock"></span></p></div><div class="space-y-4 mt-6"><button id="add-to-cart-btn" class="w-full bg-teal-500 text-white py-3 rounded-lg font-semibold text-lg hover:bg-teal-600 transition duration-300">Add to Cart</button><button id="buy-now-btn" class="w-full bg-gray-800 text-white py-3 rounded-lg font-semibold text-lg hover:bg-black transition duration-300">Buy It Now</button></div><div class="mt-8"><h3 class="font-semibold text-xl mb-2 border-b pb-2">Description</h3><div id="product-page-desc" class="text-base text-gray-600 mt-4 leading-relaxed prose"></div></div></div></div></main>
+        <main id="product-view" class="hidden container mx-auto px-4 sm:px-6 py-12"><div class="mb-6"><a href="#" onclick="handleNav(event, '#home')" class="text-teal-600 hover:underline">&larr; Back to all products</a></div><div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12"><div class="flex flex-col-reverse md:flex-row gap-4"><div id="thumbnail-container" class="thumbnail-container flex md:flex-col gap-2 overflow-x-auto md:overflow-x-hidden md:h-[500px] lg:h-[600px]"></div><div class="relative flex-1"><img id="main-product-image" src="" alt="Product" class="w-full h-auto object-contain rounded-lg shadow-md cursor-pointer"></div></div><div class="w-full"><h1 id="product-page-title" class="text-3xl md:text-4xl font-bold mb-2"></h1><div id="product-page-price" class="flex items-baseline space-x-3 mb-6"></div><div id="size-section" class="mb-6 hidden"><h3 class="font-semibold mb-3 text-lg">Size:</h3><div id="size-options" class="flex flex-wrap gap-3"></div></div><div class="space-y-4 mt-6"><button id="add-to-cart-btn" class="w-full bg-teal-500 text-white py-3 rounded-lg font-semibold text-lg hover:bg-teal-600 transition duration-300">Add to Cart</button><button id="buy-now-btn" class="w-full bg-gray-800 text-white py-3 rounded-lg font-semibold text-lg hover:bg-black transition duration-300">Buy It Now</button></div><div class="mt-8"><h3 class="font-semibold text-xl mb-2 border-b pb-2">Description</h3><div id="product-page-desc" class="text-base text-gray-600 mt-4 leading-relaxed prose"></div></div></div></div></main>
         <main id="cart-view" class="hidden container mx-auto px-4 sm:px-6 py-12"><h1 class="text-3xl font-bold text-center mb-10">Your Shopping Cart</h1><div id="cart-items-container" class="bg-white p-6 rounded-lg shadow-md"></div></main>
         <main id="checkout-view" class="hidden container mx-auto px-4 sm:px-6 py-12"><h1 class="text-3xl font-bold text-center mb-10">Checkout</h1><div class="grid grid-cols-1 lg:grid-cols-2 gap-12"><div class="bg-white p-8 rounded-lg shadow-md"><h2 class="text-2xl font-semibold mb-6">Shipping Information</h2><form id="checkout-form" class="space-y-4"><div><label for="name" class="block text-sm font-medium">Name</label><input type="text" id="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"></div><div><label for="phone" class="block text-sm font-medium">Phone Number</label><input type="tel" id="phone" required pattern="\d{11}" title="Please enter an 11-digit phone number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"></div><div><label for="address" class="block text-sm font-medium">Address</label><textarea id="address" rows="3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"></textarea></div><div><label for="delivery-zone" class="block text-sm font-medium">Delivery Zone</label><select id="delivery-zone" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"></select></div></form></div><div class="bg-white p-8 rounded-lg shadow-md"><h2 class="text-2xl font-semibold mb-6">Order Summary</h2><div id="checkout-summary-items" class="space-y-4"></div><div class="border-t mt-6 pt-6 space-y-3"><div class="flex justify-between text-lg"><p>Subtotal</p><p id="summary-subtotal">৳0</p></div><div class="flex justify-between text-lg"><p>Shipping</p><p id="summary-shipping">৳0</p></div><div class="flex justify-between font-bold text-xl"><p>Total</p><p id="summary-total">৳0</p></div></div><button id="complete-order-btn" type="submit" form="checkout-form" class="w-full mt-8 bg-teal-500 text-white py-3 rounded-lg font-semibold text-lg hover:bg-teal-600 transition duration-300 flex items-center justify-center disabled:opacity-50"><span class="btn-text">Complete Order</span><svg class="animate-spin h-5 w-5 ml-3 hidden btn-loader" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></button></div></div></main>
     </div>
@@ -155,8 +155,8 @@
             document.getElementById('product-page-price').innerHTML = `<p class="text-3xl font-bold text-teal-600">৳${product.Price.toLocaleString()}</p>${product['Compare-at price'] ? `<p class="text-xl text-red-500 line-through">৳${product['Compare-at price'].toLocaleString()}</p>` : ''}`;
             document.getElementById('product-page-desc').innerHTML = product.Description.replace(/\n/g, '<br>');
             renderImageGallery(product.Images);
-            const sizeSection = document.getElementById('size-section'), stockSection = document.getElementById('stock-section'), sizeOptions = document.getElementById('size-options');
-            sizeSection.classList.add('hidden'); stockSection.classList.add('hidden'); sizeOptions.innerHTML = ''; selectedSize = null;
+            const sizeSection = document.getElementById('size-section'), sizeOptions = document.getElementById('size-options');
+            sizeSection.classList.add('hidden'); sizeOptions.innerHTML = ''; selectedSize = null;
             if (product.Sizes && product.Sizes.length > 0) {
                 sizeSection.classList.remove('hidden');
                 product.Sizes.forEach(s => {
@@ -168,7 +168,7 @@
                         sizeOptions.appendChild(btn);
                     }
                 });
-            } else { stockSection.classList.remove('hidden'); document.getElementById('available-stock').textContent = product['Available Stock']; }
+            }
         };
 
         const renderCategories = (products) => {
@@ -231,7 +231,24 @@
 
         const saveCart = () => localStorage.setItem('sundoricaCart', JSON.stringify(cart));
         window.removeFromCart = (index) => { cart.splice(index, 1); saveCart(); renderCartPage(); updateCartCount(); };
-        window.updateQuantity = (index, quantity) => { cart[index].quantity = parseInt(quantity) || 1; saveCart(); renderCartPage(); updateCartCount(); };
+        window.updateQuantity = (index, quantity) => {
+            const item = cart[index];
+            const productInStore = allProducts.find(p => p.SKU === item.sku);
+            let maxQty = 0;
+            if (item.size) {
+                maxQty = productInStore.Sizes.find(s => s.size === item.size).quantity;
+            } else {
+                maxQty = productInStore['Available Stock'];
+            }
+            if (quantity > maxQty) {
+                showAlert(`Only ${maxQty} of this item available in stock.`);
+                quantity = maxQty;
+            }
+            cart[index].quantity = parseInt(quantity) || 1; 
+            saveCart(); 
+            renderCartPage(); 
+            updateCartCount();
+        };
         document.getElementById('delivery-zone')?.addEventListener('change', updateCheckoutSummary);
 
         const renderImageGallery = (images) => {
@@ -267,8 +284,23 @@
 
         document.getElementById('add-to-cart-btn').addEventListener('click', () => {
             if ((selectedProduct.Sizes && selectedProduct.Sizes.length > 0) && !selectedSize) { showAlert('Please select a size.'); return; }
+            
+            const existingItem = cart.find(item => item.sku === selectedProduct.SKU && item.size === selectedSize);
+            const currentQtyInCart = existingItem ? existingItem.quantity : 0;
+            
+            let maxQty = 0;
+            if (selectedSize) {
+                maxQty = selectedProduct.Sizes.find(s => s.size === selectedSize).quantity;
+            } else {
+                maxQty = selectedProduct['Available Stock'];
+            }
+
+            if (currentQtyInCart >= maxQty) {
+                showAlert('No more stock available for this item.');
+                return;
+            }
+
             const newItem = { sku: selectedProduct.SKU, name: selectedProduct.Name, price: selectedProduct.Price, size: selectedSize, quantity: 1, image: selectedProduct.Images[0] };
-            const existingItem = cart.find(item => item.sku === newItem.sku && item.size === newItem.size);
             if (existingItem) { existingItem.quantity++; } else { cart.push(newItem); }
             saveCart();
             updateCartCount();
@@ -301,8 +333,7 @@
             formData.append('orderData', JSON.stringify(payload));
 
             try {
-                // Use a direct fetch without 'no-cors' to handle the redirect and get the final response
-                const response = await fetch(WEB_APP_URL, { method: 'POST', body: formData, redirect: 'follow' });
+                const response = await fetch(WEB_APP_URL, { method: 'POST', body: formData });
                 if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
                 const result = await response.json();
                 if (result.status !== 'success') throw new Error(result.message);
