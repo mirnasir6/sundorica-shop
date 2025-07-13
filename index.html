@@ -15,22 +15,28 @@
 
     <script>
         const iframe = document.getElementById('app-frame');
-        // ধাপ ২ থেকে পাওয়া আপনার Apps Script URL টি এখানে বসান
-        const appsScriptUrl = 'YOUR_APPS_SCRIPT_URL_HERE';
-
+        
+        // ===================================================================
+        //       ধাপ ১ থেকে কপি করা আপনার Apps Script URL টি এখানে বসান
+        // ===================================================================
+        const appsScriptUrl = 'YOUR_APPS_SCRIPT_URL_HERE'; 
+        
+        // এই ফাংশনটি ব্রাউজারের URL অনুযায়ী iframe এর লিংক সেট করে
         function setIframeSource() {
-            const params = new URLSearchParams(window.location.search);
-            iframe.src = `${appsScriptUrl}${window.location.search}`;
+            const currentUrl = new URL(window.location.href);
+            iframe.src = `${appsScriptUrl}${currentUrl.search}`;
         }
 
+        // Apps Script থেকে পাঠানো মেসেজ শোনার জন্য এই কোড
         window.addEventListener('message', (event) => {
             if (event.origin !== 'https://script.google.com') {
                 return;
             }
             const data = event.data;
-            if (data.type === 'navigate' && data.path !== undefined) {
+            if (data && data.type === 'navigate' && data.path !== undefined) {
                 const newUrl = new URL(window.location.origin + window.location.pathname);
                 newUrl.search = data.path;
+
                 if (window.location.href !== newUrl.href) {
                     history.pushState({ sku: data.sku }, data.title, newUrl.href);
                     document.title = data.title || 'Sundorica';
@@ -38,8 +44,11 @@
             }
         });
         
+        // ব্রাউজারের back/forward বাটন কাজ করানোর জন্য
         window.addEventListener('popstate', setIframeSource);
-        setIframeSource(); // Initial page load
+
+        // প্রথমবার পেজ লোড করার জন্য
+        setIframeSource();
     </script>
 </body>
 </html>
