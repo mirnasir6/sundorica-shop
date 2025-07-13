@@ -1,4 +1,4 @@
-<!-- ==== website.html (Improved Error Handling) ==== -->
+<!-- ==== website.html (Final Version with Better Error Handling) ==== -->
 <!-- Nirdesh: Ei puro code-ti copy kore apnar `website.html` file-ti replace korun. -->
 
 <!DOCTYPE html>
@@ -410,26 +410,24 @@
                     apiGet({ action: 'getProducts' }),
                     apiGet({ action: 'getDeliveryCharges' })
                 ]);
-                if (productsRes.success) {
+                if (productsRes && productsRes.success) {
                     allProducts = (productsRes.data || []).reverse();
                 } else {
-                    throw new Error(`Could not load products: ${productsRes.message || 'Unknown API error'}`);
+                    throw new Error(`Could not load products: ${productsRes ? productsRes.message : 'Unknown API error'}`);
                 }
-                if (chargesRes.success) {
+                if (chargesRes && chargesRes.success) {
                     deliveryCharges = chargesRes.data || [];
                 } else {
-                    throw new Error(`Could not load delivery charges: ${chargesRes.message || 'Unknown API error'}`);
+                    throw new Error(`Could not load delivery charges: ${chargesRes ? chargesRes.message : 'Unknown API error'}`);
                 }
                 populateDeliveryZones();
                 setupEventListeners();
                 router();
             } catch (err) {
                 console.error("Failed to initialize app:", err);
-                let userMessage = `A shomossha hoyeche: ${err.message}.`;
+                let userMessage = `Data load korte shomossha hocche.\n\nError: ${err.message}.`;
                 if (err instanceof SyntaxError) {
-                    userMessage += "\n\nError Details: Eti JSON parsing error. Shomvoboto Web App thikmoto deploy kora hoyni. Nirdeshaboli onujayi 'New version' select kore abar deploy korun.";
-                } else {
-                    userMessage += "\n\nError Details: Internet connection check korun ebong nishchit hon je Web App URL-ti shothik ebong 'Anyone' access diye deploy kora hoyeche.";
+                    userMessage = `API theke shothik data ashche na. Eti 'JSON parsing error'.\n\n**KHUB JORURI:** Nishchit hon je Web App-ti deploy korar shomoy 'Who has access' option-e **'Anyone'** select kora hoyeche.\n\nKivabe thik korben:\n1. Apps Script Editor-e যান।\n2. 'Deploy' > 'Manage deployments' e click korun.\n3. Active deployment-er pashe gear icon (⚙️) e click kore 'Edit' korun.\n4. 'Who has access' e **'Anyone'** select korun.\n5. 'Deploy' korun.`;
                 }
                 showAlert(userMessage);
                 showView('home-view');
