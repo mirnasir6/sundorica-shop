@@ -6,49 +6,47 @@
     <title>Sundorica</title>
     <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
-    <iframe id="app-frame"></iframe>
+    <iframe id="app-frame" src=""></iframe>
 
     <script>
         const iframe = document.getElementById('app-frame');
         
-        // ## এইখানে আপনার Apps Script URL টি পেস্ট করুন ##
+        // আপনার দেওয়া Apps Script URL
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec'; 
 
-        // পেজ লোড হওয়ার সময় ব্রাউজারের URL চেক করা হয়
-        const urlParams = new URLSearchParams(window.location.search);
-        const productSku = urlParams.get('product');
+        function route() {
+            const params = new URLSearchParams(window.location.search);
+            const sku = params.get('product');
+            const currentIframeSrc = sku ? `${appsScriptUrl}?product=${sku}` : appsScriptUrl;
+            
+            // শুধুমাত্র যদি iframe এর src পরিবর্তন করার প্রয়োজন হয়, তাহলেই পরিবর্তন করা হবে
+            if (iframe.src !== currentIframeSrc) {
+                iframe.src = currentIframeSrc;
+            }
+        }
 
-        // URL-এ প্রোডাক্ট SKU থাকলে, সেই অনুযায়ী iframe-এর সোর্স সেট করা হয়
-        iframe.src = productSku ? `${appsScriptUrl}?product=${productSku}` : appsScriptUrl;
-
-        // iframe থেকে পাঠানো মেসেজ শোনার জন্য Event Listener
         window.addEventListener('message', (event) => {
-            // শুধুমাত্র নির্দিষ্ট অরিজিন থেকে আসা মেসেজ গ্রহণ করা হবে
             if (event.origin !== 'https://script.google.com') {
                 return;
             }
 
             const data = event.data;
-
-            // URL পরিবর্তনের জন্য মেসেজ পেলে ব্রাউজারের URL আপডেট করা হয়
             if (data.type === 'urlChange') {
-                history.pushState({ sku: data.sku }, data.title, data.url);
+                if (window.location.href !== data.fullUrl) {
+                    history.pushState({ sku: data.sku }, data.title, data.fullUrl);
+                    document.title = data.title;
+                }
             }
         });
+        
+        window.addEventListener('popstate', route);
+
+        route();
     </script>
 </body>
 </html>
