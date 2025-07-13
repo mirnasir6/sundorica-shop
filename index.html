@@ -1,52 +1,31 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sundorica</title>
-    <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        iframe { width: 100%; height: 100%; border: none; }
-    </style>
+    <title>Parent Test Page</title>
+    <style>iframe { width: 100%; height: 50vh; border: 1px solid black; }</style>
 </head>
 <body>
+    <h1>GitHub Page (Parent)</h1>
+    <button id="send-to-child">Send Message to Child</button>
+    <p id="message-from-child"></p>
     <iframe id="app-frame"></iframe>
 
     <script>
         const iframe = document.getElementById('app-frame');
-        // ধাপ ১ থেকে পাওয়া আপনার Apps Script URL টি এখানে বসান
-        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec';
+        const testUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec'; // এখানে নতুন URL টি বসান
+        iframe.src = testUrl;
 
-        function setIframeSource() {
-            const params = new URLSearchParams(window.location.search);
-            // সম্পূর্ণ query string টি iframe-এর URL-এর সাথে যোগ করা হচ্ছে
-            iframe.src = `${appsScriptUrl}${window.location.search}`;
-        }
+        document.getElementById('send-to-child').addEventListener('click', () => {
+            const message = { type: 'hello', text: 'Hello from GitHub!' };
+            console.log('PARENT: Sending message ->', message);
+            iframe.contentWindow.postMessage(message, '*');
+        });
 
         window.addEventListener('message', (event) => {
-            // শুধুমাত্র Apps Script থেকে আসা মেসেজ গ্রহণ করা হবে
-            if (event.origin !== 'https://script.google.com') {
-                return;
-            }
-
-            const data = event.data;
-            if (data.type === 'navigate' && data.path !== undefined) {
-                const newUrl = new URL(window.location.origin + window.location.pathname);
-                newUrl.search = data.path; // যেমন: "?product=123"
-
-                if (window.location.href !== newUrl.href) {
-                    history.pushState({ sku: data.sku }, data.title, newUrl.href);
-                    document.title = data.title || 'Sundorica';
-                }
-            }
+            // এখানে অরিজিন চেক করা হচ্ছে না শুধু পরীক্ষার জন্য
+            console.log('PARENT: Received message ->', event.data);
+            document.getElementById('message-from-child').innerText = 'Message from child: ' + event.data.text;
         });
-        
-        // ব্রাউজারের back/forward বাটন কাজ করানোর জন্য
-        window.addEventListener('popstate', setIframeSource);
-
-        // প্রথমবার পেজ লোড হওয়ার জন্য
-        setIframeSource();
     </script>
 </body>
 </html>
