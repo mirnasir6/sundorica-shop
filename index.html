@@ -82,51 +82,42 @@
     document.addEventListener('DOMContentLoaded', () => {
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec";
         
-        let allProducts = [];
-        let deliveryCharges = [];
-        let cart = JSON.parse(localStorage.getItem('sundoricaCart')) || [];
-        let selectedProduct = null;
-        let selectedSize = null;
-        let currentLightboxIndex = 0;
+        let allProducts = [], cart = JSON.parse(localStorage.getItem('sundoricaCart')) || [], selectedProduct = null, selectedSize = null;
 
         const views = { home: document.getElementById('home-view'), product: document.getElementById('product-view'), cart: document.getElementById('cart-view'), checkout: document.getElementById('checkout-view') };
         const globalLoader = document.getElementById('global-loader');
-        const lightboxModal = document.getElementById('lightbox-modal');
-        const thankYouModal = document.getElementById('thank-you-modal');
 
-        const fetchWithCache = async (url, cacheKey, expiryMinutes = 60) => {
+        const fetchWithCache = async (url, cacheKey, expiryMinutes = 1) => {
             const cached = localStorage.getItem(cacheKey);
             if (cached) {
                 const { timestamp, data } = JSON.parse(cached);
-                if (Date.now() - timestamp < expiryMinutes * 60 * 1000) {
-                    return data;
-                }
+                if (Date.now() - timestamp < expiryMinutes * 60 * 1000) return data;
             }
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error(`Network error (status ${response.status}). Check deployment permissions.`);
+                if (!response.ok) throw new Error(`Network error. Check deployment permissions.`);
                 const result = await response.json();
-                if (result.status !== 'success') throw new Error(`API Error: ${result.message}`);
+                if (result.status !== 'success') throw new Error(result.message);
                 localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: result.data }));
                 return result.data;
             } catch (e) {
-                console.error(`Failed to fetch or parse from ${url}. Error: ${e.message}`);
-                throw new Error(`Could not load data. Please ensure the Apps Script is deployed with "Anyone" having access. Details: ${e.message}`);
+                console.error(`Fetch Error: ${e.message}`);
+                throw new Error(`Could not load data. Ensure Apps Script is deployed for "Anyone".`);
             }
         };
 
         const initializeApp = async () => {
             try {
-                [allProducts, deliveryCharges] = await Promise.all([
+                const [products, deliveryCharges] = await Promise.all([
                     fetchWithCache(`${WEB_APP_URL}?action=getProducts`, 'sundoricaProducts', 5),
                     fetchWithCache(`${WEB_APP_URL}?action=getDeliveryCharges`, 'sundoricaDelivery', 60)
                 ]);
-                renderCategories();
-                renderDeliveryZones();
+                allProducts = products;
+                renderCategories(products);
+                renderDeliveryZones(deliveryCharges);
                 updateCartCount();
                 handleRouteChange();
             } catch (error) {
-                console.error("Initialization failed:", error);
                 showAlert(error.message);
             } finally {
                 globalLoader.style.display = 'none';
@@ -137,60 +128,23 @@
         const handleRouteChange = () => {
             const hash = window.location.hash || '#home';
             const [route, param] = hash.substring(1).split('/');
-            
             Object.values(views).forEach(view => view.classList.add('hidden'));
-            
-            let productsToRender = allProducts;
-            let pageTitle = "All Products";
-
-            if (route === 'category') {
-                productsToRender = allProducts.filter(p => p.Category === param);
-                pageTitle = param;
-            }
-
-            if (route === 'home' || route === 'category') {
-                views.home.classList.remove('hidden');
-                renderProductGrid(productsToRender);
-                document.getElementById('page-title').textContent = pageTitle;
-            } else if (route === 'product' && param) {
-                selectedProduct = allProducts.find(p => p.SKU == param);
-                if (selectedProduct) {
-                    views.product.classList.remove('hidden');
-                    renderProductPage(selectedProduct);
-                } else {
-                    window.location.hash = '#home';
-                }
-            } else if (route === 'cart') {
-                views.cart.classList.remove('hidden');
-                renderCartPage();
-            } else if (route === 'checkout') {
-                views.checkout.classList.remove('hidden');
-                renderCheckoutPage();
-            } else {
-                views.home.classList.remove('hidden');
-                renderProductGrid(allProducts);
-            }
+            let productsToRender = allProducts, pageTitle = "All Products";
+            if (route === 'category') { productsToRender = allProducts.filter(p => p.Category === param); pageTitle = param; }
+            if (route === 'home' || route === 'category') { views.home.classList.remove('hidden'); renderProductGrid(productsToRender); document.getElementById('page-title').textContent = pageTitle; } 
+            else if (route === 'product' && param) { selectedProduct = allProducts.find(p => p.SKU == param); if (selectedProduct) { views.product.classList.remove('hidden'); renderProductPage(selectedProduct); } else { window.location.hash = '#home'; } } 
+            else if (route === 'cart') { views.cart.classList.remove('hidden'); renderCartPage(); } 
+            else if (route === 'checkout') { views.checkout.classList.remove('hidden'); renderCheckoutPage(); } 
+            else { views.home.classList.remove('hidden'); renderProductGrid(allProducts); }
             window.scrollTo(0, 0);
         };
 
         const renderProductGrid = (products) => {
             const grid = document.getElementById('product-grid');
-            if (!products || products.length === 0) {
-                grid.innerHTML = `<p class="col-span-full text-center text-gray-500">No products found.</p>`;
-                return;
-            }
-            grid.innerHTML = products.map(p => `
+            grid.innerHTML = (!products || products.length === 0) ? `<p class="col-span-full text-center text-gray-500">No products found.</p>` : products.map(p => `
                 <a href="#product/${p.SKU}" class="bg-white rounded-lg shadow-lg overflow-hidden group block">
-                    <div class="aspect-[2/3] bg-gray-200">
-                        <img src="${p.Images[0] || 'https://placehold.co/400x600/e2e8f0/333?text=No+Image'}" alt="${p.Name}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
-                    </div>
-                    <div class="p-4">
-                        <h3 class="text-md font-semibold truncate">${p.Name}</h3>
-                        <div class="flex items-baseline space-x-2 mt-2">
-                            <p class="text-lg font-bold text-teal-600">৳${p.Price.toLocaleString()}</p>
-                            ${p['Compare-at price'] ? `<p class="text-sm text-red-500 line-through">৳${p['Compare-at price'].toLocaleString()}</p>` : ''}
-                        </div>
-                    </div>
+                    <div class="aspect-[2/3] bg-gray-200"><img src="${p.Images[0] || 'https://placehold.co/400x600/e2e8f0/333?text=No+Image'}" alt="${p.Name}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"></div>
+                    <div class="p-4"><h3 class="text-md font-semibold truncate">${p.Name}</h3><div class="flex items-baseline space-x-2 mt-2"><p class="text-lg font-bold text-teal-600">৳${p.Price.toLocaleString()}</p>${p['Compare-at price'] ? `<p class="text-sm text-red-500 line-through">৳${p['Compare-at price'].toLocaleString()}</p>` : ''}</div></div>
                 </a>`).join('');
         };
 
@@ -199,16 +153,8 @@
             document.getElementById('product-page-price').innerHTML = `<p class="text-3xl font-bold text-teal-600">৳${product.Price.toLocaleString()}</p>${product['Compare-at price'] ? `<p class="text-xl text-red-500 line-through">৳${product['Compare-at price'].toLocaleString()}</p>` : ''}`;
             document.getElementById('product-page-desc').innerHTML = product.Description.replace(/\n/g, '<br>');
             renderImageGallery(product.Images);
-
-            const sizeSection = document.getElementById('size-section');
-            const stockSection = document.getElementById('stock-section');
-            const sizeOptions = document.getElementById('size-options');
-            
-            sizeSection.classList.add('hidden');
-            stockSection.classList.add('hidden');
-            sizeOptions.innerHTML = '';
-            selectedSize = null;
-
+            const sizeSection = document.getElementById('size-section'), stockSection = document.getElementById('stock-section'), sizeOptions = document.getElementById('size-options');
+            sizeSection.classList.add('hidden'); stockSection.classList.add('hidden'); sizeOptions.innerHTML = ''; selectedSize = null;
             if (product.Sizes && product.Sizes.length > 0) {
                 sizeSection.classList.remove('hidden');
                 product.Sizes.forEach(s => {
@@ -216,36 +162,26 @@
                         const btn = document.createElement('button');
                         btn.className = 'size-btn border-2 border-gray-300 rounded px-4 py-2 hover:border-teal-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition';
                         btn.textContent = s.size;
-                        btn.onclick = () => {
-                            sizeOptions.querySelectorAll('.size-btn').forEach(b => b.classList.remove('bg-teal-500', 'text-white', 'border-teal-500'));
-                            btn.classList.add('bg-teal-500', 'text-white', 'border-teal-500');
-                            selectedSize = s.size;
-                        };
+                        btn.onclick = () => { sizeOptions.querySelectorAll('.size-btn').forEach(b => b.classList.remove('bg-teal-500', 'text-white', 'border-teal-500')); btn.classList.add('bg-teal-500', 'text-white', 'border-teal-500'); selectedSize = s.size; };
                         sizeOptions.appendChild(btn);
                     }
                 });
-            } else {
-                stockSection.classList.remove('hidden');
-                document.getElementById('available-stock').textContent = product['Available Stock'];
-            }
+            } else { stockSection.classList.remove('hidden'); document.getElementById('available-stock').textContent = product['Available Stock']; }
         };
 
-        const renderCategories = () => {
-            const categories = [...new Set(allProducts.map(p => p.Category))].filter(Boolean);
+        const renderCategories = (products) => {
+            const categories = [...new Set(products.map(p => p.Category))].filter(Boolean);
             const desktopContainer = document.getElementById('desktop-category-menu');
             const mobileContainer = document.getElementById('mobile-menu');
-            
             const menuHTML = categories.map(cat => `<a href="#category/${cat}" class="text-gray-600 hover:text-teal-500 transition duration-300">${cat}</a>`).join('');
             desktopContainer.innerHTML = `<a href="#home" class="text-gray-600 hover:text-teal-500 transition duration-300">All Products</a>` + menuHTML;
-            
-            const mobileMenuHTML = categories.map(cat => `<a href="#category/${cat}" class="block py-2 px-6 text-sm hover:bg-teal-50">${cat}</a>`).join('');
-            mobileContainer.innerHTML = `<a href="#home" class="block py-2 px-6 text-sm hover:bg-teal-50">All Products</a>` + mobileMenuHTML;
+            mobileContainer.innerHTML = `<a href="#home" class="block py-2 px-6 text-sm hover:bg-teal-50">All Products</a>` + categories.map(cat => `<a href="#category/${cat}" class="block py-2 px-6 text-sm hover:bg-teal-50">${cat}</a>`).join('');
         };
         
-        const renderDeliveryZones = () => {
+        const renderDeliveryZones = (charges) => {
             const select = document.getElementById('delivery-zone');
             select.innerHTML = '<option value="">Select Zone</option>';
-            deliveryCharges.forEach(zone => {
+            charges.forEach(zone => {
                 const option = document.createElement('option');
                 option.value = `${zone.zoneName.toLowerCase().replace(/\s+/g, '-')}-${zone.charge}`;
                 option.textContent = `${zone.zoneName} (৳${zone.charge})`;
@@ -264,11 +200,7 @@
         
         const renderCheckoutPage = () => {
             const summaryContainer = document.getElementById('checkout-summary-items');
-            if (cart.length === 0) {
-                summaryContainer.innerHTML = `<p class="text-gray-500">Your cart is empty.</p>`;
-                document.getElementById('complete-order-btn').disabled = true;
-                return;
-            }
+            if (cart.length === 0) { summaryContainer.innerHTML = `<p class="text-gray-500">Your cart is empty.</p>`; document.getElementById('complete-order-btn').disabled = true; return; }
             document.getElementById('complete-order-btn').disabled = false;
             summaryContainer.innerHTML = cart.map(item => `<div class="flex justify-between items-center"><div class="flex items-center gap-3"><img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded"><div><p class="font-semibold">${item.name}</p><p class="text-sm text-gray-500">${item.quantity} x ৳${item.price.toLocaleString()}</p></div></div><p class="font-semibold">৳${(item.price * item.quantity).toLocaleString()}</p></div>`).join('');
             updateCheckoutSummary();
@@ -287,8 +219,7 @@
         document.getElementById('delivery-zone')?.addEventListener('change', updateCheckoutSummary);
 
         const renderImageGallery = (images) => {
-            const mainImage = document.getElementById('main-product-image');
-            const thumbnailContainer = document.getElementById('thumbnail-container');
+            const mainImage = document.getElementById('main-product-image'), thumbnailContainer = document.getElementById('thumbnail-container');
             thumbnailContainer.innerHTML = '';
             images.forEach((src, index) => {
                 const thumb = document.createElement('img');
@@ -341,10 +272,8 @@
             e.preventDefault();
             if (!document.getElementById('delivery-zone').value) { showAlert('Please select a delivery zone.'); return; }
             
-            const orderBtn = document.getElementById('complete-order-btn');
-            orderBtn.disabled = true;
-            orderBtn.querySelector('.btn-text').classList.add('hidden');
-            orderBtn.querySelector('.btn-loader').classList.remove('hidden');
+            const orderBtn = document.getElementById('complete-order-btn'), btnText = orderBtn.querySelector('.btn-text'), loader = orderBtn.querySelector('.btn-loader');
+            orderBtn.disabled = true; btnText.classList.add('hidden'); loader.classList.remove('hidden');
 
             const { total } = calculateTotal();
             const payload = {
@@ -352,28 +281,29 @@
                 cart: cart.map(item => ({ sku: item.sku, name: item.name, price: item.price, size: item.size, quantity: item.quantity }))
             };
 
+            const formData = new FormData();
+            formData.append('orderData', JSON.stringify(payload));
+
             try {
-                const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload), headers: {'Content-Type': 'application/json'} });
+                const response = await fetch(WEB_APP_URL, { method: 'POST', body: formData });
                 if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
                 const result = await response.json();
                 if (result.status !== 'success') throw new Error(result.message);
                 
                 document.getElementById('order-id-display').textContent = result.data.orderId;
                 document.getElementById('order-amount-display').textContent = `৳${result.data.totalAmount.toLocaleString()}`;
-                thankYouModal.classList.remove('hidden');
+                document.getElementById('thank-you-modal').classList.remove('hidden');
                 localStorage.removeItem('sundoricaProducts');
             } catch (error) {
                 console.error("Order submission error:", error);
                 showAlert(`Order Failed: ${error.message}`);
             } finally {
-                orderBtn.disabled = false;
-                orderBtn.querySelector('.btn-text').classList.remove('hidden');
-                orderBtn.querySelector('.btn-loader').classList.add('hidden');
+                orderBtn.disabled = false; btnText.classList.remove('hidden'); loader.classList.add('hidden');
             }
         });
 
         document.getElementById('close-thank-you-modal').addEventListener('click', () => {
-            thankYouModal.classList.add('hidden');
+            document.getElementById('thank-you-modal').classList.add('hidden');
             cart = [];
             saveCart();
             updateCartCount();
