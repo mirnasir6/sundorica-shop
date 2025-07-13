@@ -15,38 +15,45 @@
 
     <script>
         const iframe = document.getElementById('app-frame');
-        
-        // আপনার দেওয়া Apps Script URL
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec'; 
 
         function route() {
+            console.log("PARENT (GitHub): route() function called.");
             const params = new URLSearchParams(window.location.search);
             const sku = params.get('product');
-            const currentIframeSrc = sku ? `${appsScriptUrl}?product=${sku}` : appsScriptUrl;
-            
-            // শুধুমাত্র যদি iframe এর src পরিবর্তন করার প্রয়োজন হয়, তাহলেই পরিবর্তন করা হবে
-            if (iframe.src !== currentIframeSrc) {
-                iframe.src = currentIframeSrc;
+            const newIframeSrc = sku ? `${appsScriptUrl}?product=${sku}` : appsScriptUrl;
+
+            if (iframe.src !== newIframeSrc) {
+                console.log("PARENT (GitHub): Updating iframe src to:", newIframeSrc);
+                iframe.src = newIframeSrc;
             }
         }
 
         window.addEventListener('message', (event) => {
+            console.log("PARENT (GitHub): Message received from iframe:", event.data);
+
             if (event.origin !== 'https://script.google.com') {
+                console.warn("PARENT (GitHub): Message rejected due to origin mismatch. Expected 'https://script.google.com', but got:", event.origin);
                 return;
             }
 
             const data = event.data;
             if (data.type === 'urlChange') {
-                if (window.location.href !== data.fullUrl) {
-                    history.pushState({ sku: data.sku }, data.title, data.fullUrl);
-                    document.title = data.title;
-                }
+                console.log("PARENT (GitHub): Message type is 'urlChange'. Preparing to update parent URL.");
+                
+                // Construct the new full URL
+                const newUrl = new URL(window.location.origin + window.location.pathname);
+                newUrl.search = data.path;
+
+                console.log("PARENT (GitHub): New URL constructed:", newUrl.href);
+                history.pushState({ sku: data.sku }, data.title, newUrl.href);
+                document.title = data.title;
+                console.log("PARENT (GitHub): Parent URL and title updated successfully.");
             }
         });
         
         window.addEventListener('popstate', route);
-
-        route();
+        route(); // Initial call to set the correct iframe source on page load
     </script>
 </body>
 </html>
