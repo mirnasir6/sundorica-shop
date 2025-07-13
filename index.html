@@ -1,4 +1,4 @@
-<!-- ==== website.html (Final Version with Better Error Handling) ==== -->
+<!-- ==== website.html (Optimized for Speed) ==== -->
 <!-- Nirdesh: Ei puro code-ti copy kore apnar `website.html` file-ti replace korun. -->
 
 <!DOCTYPE html>
@@ -31,8 +31,8 @@
     /></noscript>
     
     <style>
-        .modal, .loader-container, .view { display: none; }
-        .modal.flex, .loader-container.flex { display: flex; }
+        .modal, .loader-container, .view, #image-lightbox { display: none; }
+        .modal.flex, .loader-container.flex, #image-lightbox.flex { display: flex; }
         .loader {
             border: 5px solid #f3f3f3;
             border-top: 5px solid #3498db;
@@ -49,6 +49,9 @@
         .size-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
         .product-description-text { white-space: pre-wrap; }
+        #main-product-image { width: 100%; max-height: 80vh; object-fit: contain; cursor: pointer; }
+        .thumbnail-img { cursor: pointer; }
+        #lightbox-img { max-width: 90vw; max-height: 80vh; object-fit: contain; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans flex flex-col min-h-screen">
@@ -168,6 +171,17 @@
             <button id="close-alert-modal" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">OK</button>
         </div>
     </div>
+    
+    <div id="image-lightbox" class="fixed inset-0 bg-black bg-opacity-80 items-center justify-center z-50">
+        <div class="relative">
+            <img id="lightbox-img" src="" alt="Full screen product image" class="rounded-lg">
+            <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-8 bg-black bg-opacity-50 rounded-full px-4 py-2">
+                <button id="lightbox-prev" class="text-white text-2xl hover:text-gray-300"><i class="fas fa-arrow-left"></i></button>
+                <button id="lightbox-close" class="text-white text-2xl hover:text-gray-300"><i class="fas fa-times"></i></button>
+                <button id="lightbox-next" class="text-white text-2xl hover:text-gray-300"><i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec';
@@ -181,11 +195,15 @@
         const checkoutModal = document.getElementById('checkout-modal');
         const successModal = document.getElementById('success-modal');
         const alertModal = document.getElementById('alert-modal');
+        const imageLightbox = document.getElementById('image-lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
 
         let allProducts = [];
         let deliveryCharges = [];
         let cart = [];
         let currentFilter = { category: 'All', subcategory: null, searchTerm: '' };
+        let lightboxImages = [];
+        let currentLightboxIndex = 0;
 
         const showAlert = (message) => {
             document.getElementById('alert-message').textContent = message;
@@ -210,6 +228,31 @@
             const response = await fetch(url);
             if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
             return response.json();
+        };
+
+        const openLightbox = (images, startIndex) => {
+            lightboxImages = images;
+            currentLightboxIndex = startIndex;
+            updateLightboxImage();
+            imageLightbox.classList.add('flex');
+        };
+
+        const closeLightbox = () => {
+            imageLightbox.classList.remove('flex');
+        };
+
+        const updateLightboxImage = () => {
+            lightboxImg.src = lightboxImages[currentLightboxIndex];
+        };
+
+        const showNextImage = () => {
+            currentLightboxIndex = (currentLightboxIndex + 1) % lightboxImages.length;
+            updateLightboxImage();
+        };
+
+        const showPrevImage = () => {
+            currentLightboxIndex = (currentLightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+            updateLightboxImage();
         };
 
         const router = async () => {
@@ -279,6 +322,24 @@
                 return;
             }
             fbq('track', 'ViewContent', { content_type: 'product', content_ids: [product.SKU], content_name: product.Name, value: product.Price, currency: 'BDT' });
+            
+            const images = product['Images Link'] ? String(product['Images Link']).split(',').map(s => s.trim()) : ['https://placehold.co/600x800?text=No+Image'];
+            
+            const imageGalleryHTML = `
+                <div class="flex flex-col-reverse lg:flex-row gap-4">
+                    <div id="thumbnail-container" class="flex lg:flex-col gap-3 justify-center lg:justify-start flex-wrap">
+                        ${images.map((img, index) => `
+                            <img src="${img}" 
+                                 alt="Thumbnail ${index + 1}" 
+                                 class="thumbnail-img w-16 h-20 object-cover rounded-md border-2 ${index === 0 ? 'border-blue-500' : 'border-transparent'}">
+                        `).join('')}
+                    </div>
+                    <div class="flex-grow">
+                        <img id="main-product-image" src="${images[0]}" alt="${product.Name}" class="w-full rounded-lg shadow-lg">
+                    </div>
+                </div>
+            `;
+
             let sizeOptionsHTML = '';
             if (product.Category === 'Stitched' && product['Size And Quantity']) {
                 const variants = String(product['Size And Quantity']).split(',').filter(v => (parseInt(v.split('-')[1]) || 0) > 0);
@@ -286,9 +347,37 @@
                     sizeOptionsHTML = `<div class="mt-4"><h4 class="text-sm font-medium text-gray-700 mb-2">Select Size</h4><div id="size-selector" class="flex flex-wrap gap-2">${variants.map(v => `<button class="size-btn border-2 rounded-md py-1 px-3 hover:border-blue-500" data-size="${v.split('-')[0]}" data-stock="${v.split('-')[1]}">${v.split('-')[0]}</button>`).join('')}</div></div>`;
                 }
             }
-            const images = product['Images Link'] ? String(product['Images Link']).split(',').map(s => s.trim()) : ['https://placehold.co/600x600?text=No+Image'];
-            productDetailView.innerHTML = `<div class="mb-6"><a href="#" class="text-blue-600 hover:underline">&larr; Back to All Products</a></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><img id="main-product-image" src="${images[0]}" alt="${product.Name}" class="w-full rounded-lg shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/600x600?text=Image+Error';">${images.length > 1 ? `<div class="flex space-x-2 mt-2">${images.map(img => `<img src="${img}" class="h-16 w-16 object-cover rounded cursor-pointer border-2 border-transparent hover:border-blue-500" onclick="document.getElementById('main-product-image').src='${img}'">`).join('')}</div>` : ''}</div><div><h2 class="text-2xl md:text-3xl font-bold text-gray-900">${product.Name}</h2><div class="flex items-baseline mt-2"><p class="text-2xl font-bold text-blue-600">${product.Price} Tk</p>${product['Compare-at price'] ? `<p class="ml-3 text-md text-red-500 line-through">${product['Compare-at price']} Tk</p>` : ''}</div>${sizeOptionsHTML}<div class="mt-4 flex items-center"><label for="product-quantity" class="mr-4 text-sm font-medium text-gray-700">Quantity</label><input type="number" id="product-quantity" value="1" min="1" class="w-20 p-2 border rounded"></div><div class="mt-6 space-y-3"><button id="order-now-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded">Order Now</button><button id="add-to-cart-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded">Add to Cart</button></div><div class="mt-6 border-t pt-4"><details open><summary class="font-semibold cursor-pointer">Description</summary><p class="mt-2 text-gray-600 text-sm product-description-text">${product.Description || 'No description available.'}</p></details></div></div></div>`;
+
+            productDetailView.innerHTML = `
+                <div class="mb-6"><a href="#" class="text-blue-600 hover:underline">&larr; Back to All Products</a></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>${imageGalleryHTML}</div>
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900">${product.Name}</h2>
+                        <div class="flex items-baseline mt-2"><p class="text-2xl font-bold text-blue-600">${product.Price} Tk</p>${product['Compare-at price'] ? `<p class="ml-3 text-md text-red-500 line-through">${product['Compare-at price']} Tk</p>` : ''}</div>
+                        ${sizeOptionsHTML}
+                        <div class="mt-4 flex items-center"><label for="product-quantity" class="mr-4 text-sm font-medium text-gray-700">Quantity</label><input type="number" id="product-quantity" value="1" min="1" class="w-20 p-2 border rounded"></div>
+                        <div class="mt-6 space-y-3"><button id="order-now-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded">Order Now</button><button id="add-to-cart-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded">Add to Cart</button></div>
+                        <div class="mt-6 border-t pt-4"><details open><summary class="font-semibold cursor-pointer">Description</summary><p class="mt-2 text-gray-600 text-sm product-description-text">${product.Description || 'No description available.'}</p></details></div>
+                    </div>
+                </div>
+            `;
             
+            document.getElementById('main-product-image').addEventListener('click', () => {
+                const currentSrc = document.getElementById('main-product-image').src;
+                const currentIndex = images.findIndex(img => img === currentSrc);
+                openLightbox(images, currentIndex !== -1 ? currentIndex : 0);
+            });
+
+            document.querySelectorAll('.thumbnail-img').forEach(thumb => {
+                thumb.addEventListener('click', () => {
+                    const mainImage = document.getElementById('main-product-image');
+                    mainImage.src = thumb.src;
+                    document.querySelectorAll('.thumbnail-img').forEach(img => img.classList.replace('border-blue-500', 'border-transparent'));
+                    thumb.classList.replace('border-transparent', 'border-blue-500');
+                });
+            });
+
             productDetailView.querySelector('a').addEventListener('click', e => { e.preventDefault(); window.history.back(); });
             const qtyInput = document.getElementById('product-quantity');
             if (product.Category !== 'Stitched') qtyInput.max = product['Available Stock'] || 1;
@@ -406,20 +495,16 @@
         const initialize = async () => {
             showLoader();
             try {
-                const [productsRes, chargesRes] = await Promise.all([
-                    apiGet({ action: 'getProducts' }),
-                    apiGet({ action: 'getDeliveryCharges' })
-                ]);
-                if (productsRes && productsRes.success) {
-                    allProducts = (productsRes.data || []).reverse();
+                // UPDATED: Changed to a single API call
+                const response = await apiGet({ action: 'getInitialData' });
+
+                if (response && response.success) {
+                    allProducts = (response.data.products || []).reverse();
+                    deliveryCharges = response.data.deliveryCharges || [];
                 } else {
-                    throw new Error(`Could not load products: ${productsRes ? productsRes.message : 'Unknown API error'}`);
+                    throw new Error(`Could not load initial data: ${response ? response.message : 'Unknown API error'}`);
                 }
-                if (chargesRes && chargesRes.success) {
-                    deliveryCharges = chargesRes.data || [];
-                } else {
-                    throw new Error(`Could not load delivery charges: ${chargesRes ? chargesRes.message : 'Unknown API error'}`);
-                }
+                
                 populateDeliveryZones();
                 setupEventListeners();
                 router();
@@ -468,6 +553,10 @@
             document.getElementById('desktop-clothing-toggle').addEventListener('click', e => { e.stopPropagation(); desktopDropdown.classList.toggle('open'); });
             window.addEventListener('click', () => { if (desktopDropdown.classList.contains('open')) { desktopDropdown.classList.remove('open'); } });
             document.getElementById('mobile-clothing-toggle').addEventListener('click', e => { e.preventDefault(); document.getElementById('mobile-clothing-submenu').classList.toggle('hidden'); });
+            
+            document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+            document.getElementById('lightbox-next').addEventListener('click', showNextImage);
+            document.getElementById('lightbox-prev').addEventListener('click', showPrevImage);
         };
         
         document.addEventListener('DOMContentLoaded', initialize);
