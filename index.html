@@ -11,29 +11,30 @@
     </style>
 </head>
 <body>
-    <iframe id="app-frame" src=""></iframe>
+    <iframe id="app-frame"></iframe>
 
     <script>
         const iframe = document.getElementById('app-frame');
-        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec'; // ধাপ ১ থেকে পাওয়া লিংকটি এখানে বসান
+        // ধাপ ১ থেকে পাওয়া আপনার Apps Script URL টি এখানে বসান
+        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec';
 
-        function route() {
+        function setIframeSource() {
             const params = new URLSearchParams(window.location.search);
-            const sku = params.get('product');
-            const newIframeSrc = sku ? `${appsScriptUrl}?product=${sku}` : appsScriptUrl;
-            if (iframe.src !== newIframeSrc) {
-                iframe.src = newIframeSrc;
-            }
+            // সম্পূর্ণ query string টি iframe-এর URL-এর সাথে যোগ করা হচ্ছে
+            iframe.src = `${appsScriptUrl}${window.location.search}`;
         }
 
         window.addEventListener('message', (event) => {
+            // শুধুমাত্র Apps Script থেকে আসা মেসেজ গ্রহণ করা হবে
             if (event.origin !== 'https://script.google.com') {
                 return;
             }
+
             const data = event.data;
-            if (data.type === 'urlChange' && data.path !== undefined) {
+            if (data.type === 'navigate' && data.path !== undefined) {
                 const newUrl = new URL(window.location.origin + window.location.pathname);
-                newUrl.search = data.path;
+                newUrl.search = data.path; // যেমন: "?product=123"
+
                 if (window.location.href !== newUrl.href) {
                     history.pushState({ sku: data.sku }, data.title, newUrl.href);
                     document.title = data.title || 'Sundorica';
@@ -41,8 +42,11 @@
             }
         });
         
-        window.addEventListener('popstate', route);
-        route(); // Initial page load
+        // ব্রাউজারের back/forward বাটন কাজ করানোর জন্য
+        window.addEventListener('popstate', setIframeSource);
+
+        // প্রথমবার পেজ লোড হওয়ার জন্য
+        setIframeSource();
     </script>
 </body>
 </html>
