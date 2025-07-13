@@ -4,43 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sundorica</title>
-    <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
     <style>
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
-    <iframe id="app-frame"></iframe>
-
-    <script>
-        const iframe = document.getElementById('app-frame');
-        // এই URL টি সঠিক আছে কিনা, অনুগ্রহ করে আবার চেক করুন
-        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec';
-
-        function routeApp() {
-            const currentUrl = new URL(window.location.href);
-            iframe.src = `${appsScriptUrl}${currentUrl.search}`;
-        }
-
-        // এই অংশটি আপনার ফাইলে আছে কিনা নিশ্চিত করুন
-        window.addEventListener('message', (event) => {
-            if (event.origin !== 'https://script.google.com') {
-                return;
-            }
-            const data = event.data;
-            if (data && data.type === 'navigate') {
-                const newUrl = new URL(window.location.origin + window.location.pathname);
-                newUrl.search = data.path;
-                if (window.location.href !== newUrl.href) {
-                    history.pushState({ sku: data.sku }, data.title, newUrl.href);
-                    document.title = data.title || 'Sundorica';
-                }
-            }
-        });
-        
-        window.addEventListener('popstate', routeApp);
-        routeApp();
-    </script>
+    <iframe src="https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec"></iframe>
 </body>
 </html>
