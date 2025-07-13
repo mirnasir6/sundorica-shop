@@ -15,45 +15,34 @@
 
     <script>
         const iframe = document.getElementById('app-frame');
-        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec'; 
+        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxPaNt_z0uRscltA5lyE_WTPogNs5d1mCqd7JDREyzJqUTHi0OPQlnh85f3ySpMTU4/exec'; // ধাপ ১ থেকে পাওয়া লিংকটি এখানে বসান
 
         function route() {
-            console.log("PARENT (GitHub): route() function called.");
             const params = new URLSearchParams(window.location.search);
             const sku = params.get('product');
             const newIframeSrc = sku ? `${appsScriptUrl}?product=${sku}` : appsScriptUrl;
-
             if (iframe.src !== newIframeSrc) {
-                console.log("PARENT (GitHub): Updating iframe src to:", newIframeSrc);
                 iframe.src = newIframeSrc;
             }
         }
 
         window.addEventListener('message', (event) => {
-            console.log("PARENT (GitHub): Message received from iframe:", event.data);
-
             if (event.origin !== 'https://script.google.com') {
-                console.warn("PARENT (GitHub): Message rejected due to origin mismatch. Expected 'https://script.google.com', but got:", event.origin);
                 return;
             }
-
             const data = event.data;
-            if (data.type === 'urlChange') {
-                console.log("PARENT (GitHub): Message type is 'urlChange'. Preparing to update parent URL.");
-                
-                // Construct the new full URL
+            if (data.type === 'urlChange' && data.path !== undefined) {
                 const newUrl = new URL(window.location.origin + window.location.pathname);
                 newUrl.search = data.path;
-
-                console.log("PARENT (GitHub): New URL constructed:", newUrl.href);
-                history.pushState({ sku: data.sku }, data.title, newUrl.href);
-                document.title = data.title;
-                console.log("PARENT (GitHub): Parent URL and title updated successfully.");
+                if (window.location.href !== newUrl.href) {
+                    history.pushState({ sku: data.sku }, data.title, newUrl.href);
+                    document.title = data.title || 'Sundorica';
+                }
             }
         });
         
         window.addEventListener('popstate', route);
-        route(); // Initial call to set the correct iframe source on page load
+        route(); // Initial page load
     </script>
 </body>
 </html>
