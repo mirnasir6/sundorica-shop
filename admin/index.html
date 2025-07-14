@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sundorica Admin Panel</title>
 
-    <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
+    <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png" />
+
+    <!-- Prevent clickjacking by framing from other domains (optional) -->
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self'" />
 
     <style>
-        body, html {
+        /* Full page iframe */
+        html, body {
             margin: 0;
             padding: 0;
             height: 100%;
@@ -18,12 +23,16 @@
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
     </style>
 </head>
 <body>
-
-    <iframe src="https://script.google.com/macros/s/AKfycbymrW4hYS23CJxNzuxIuYYFLIOTV_Xe8ymZ24JGXFuNfI4lxxiVLS2nTHlCdNJi32s/exec"></iframe>
-
+    <iframe 
+      src="https://script.google.com/macros/s/AKfycbymrW4hYS23CJxNzuxIuYYFLIOTV_Xe8ymZ24JGXFuNfI4lxxiVLS2nTHlCdNJi32s/exec" 
+      title="Sundorica Admin Panel"
+      allowfullscreen
+      sandbox="allow-scripts allow-same-origin allow-forms"
+    ></iframe>
 </body>
 </html>
