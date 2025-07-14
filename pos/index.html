@@ -3,6 +3,8 @@
 <head>
     <base target="_top">
     <title>POS System</title>
+    <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -177,42 +179,30 @@
 
 
     <script>
-      // --- START: MODIFIED FOR GITHUB HOSTING ---
       const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOj1fMjodE9eQflDPOmkaYY7S3kEjl7qxZE7ZHWvWlRK5v0RZk7Xi04lpQfz0M72E/exec';
 
-      /**
-       * Helper function to call the Google Apps Script backend using fetch.
-       * @param {string} action - The name of the function to call in code.gs.
-       * @param {object} [payload] - The data to send to the function.
-       * @returns {Promise<object>} - The JSON response from the server.
-       */
       async function callAppsScript(action, payload) {
           showLoader();
           try {
               const response = await fetch(WEB_APP_URL, {
                   method: 'POST',
                   headers: {
-                      'Content-Type': 'text/plain;charset=utf-8', // Use text/plain for simplicity with Apps Script
+                      'Content-Type': 'text/plain;charset=utf-8',
                   },
                   body: JSON.stringify({ action: action, payload: payload }),
                   redirect: 'follow'
               });
-
               if (!response.ok) {
                   throw new Error(`HTTP error! status: ${response.status}`);
               }
-              
               const result = await response.json();
               hideLoader();
               return result;
-
           } catch (error) {
               onFailure({ message: `Network or server call failed: ${error.message}` });
-              // The promise will be rejected, so the calling function's catch block will execute.
               throw error; 
           }
       }
-      // --- END: MODIFIED FOR GITHUB HOSTING ---
 
       var ALL_PRODUCTS = [], ALL_CUSTOMERS = [], ALL_SALES = [], ALL_BRANDS = [], SALE_LIST_ITEMS = [], BARCODE_PRINT_LIST = [], RETURN_QUEUE = [], LATEST_RECEIPT_DATA = null;
       var loader = document.getElementById('loader-overlay'), pages = document.querySelectorAll('.page'), sidebarItems = document.querySelectorAll('.sidebar-item');
@@ -244,18 +234,14 @@
                 err.textContent = r.message || 'Login failed.'; 
                 setTimeout(function() { err.textContent = ''; }, 3000); 
             } 
-          } catch(error) {
-            // onFailure is called inside callAppsScript
-          }
+          } catch(error) {}
       }
 
       async function startApp() {
           try {
             const data = await callAppsScript('getInitialData');
             onInitialDataSuccess(data);
-          } catch(error) {
-            // onFailure is called inside callAppsScript
-          }
+          } catch(error) {}
           sidebarItems.forEach(function(i) { i.addEventListener('click', function(e) { e.preventDefault(); navigateTo(i.getAttribute('href').substring(1)); }); }); 
           navigateTo(window.location.hash ? window.location.hash.substring(1) : 'dashboard'); 
           setupEventListeners();
@@ -291,15 +277,12 @@
               try {
                 const d = await callAppsScript('getDashboardData');
                 updateDashboard(d); 
-              } catch(error) {
-                // error handled in callAppsScript
-              }
+              } catch(error) {}
           } 
       }
 
       function showLoader() { loader.style.display = 'flex'; }
       function hideLoader() { loader.style.display = 'none'; }
-
       function initDarkMode() { 
           var t = document.getElementById('dark-mode-toggle');
           if (localStorage.getItem('darkMode') === 'enabled') { 
@@ -312,7 +295,6 @@
               localStorage.setItem('darkMode', document.documentElement.classList.contains('dark') ? 'enabled' : 'disabled'); 
           });
       }
-
       function setupEventListeners() {
           document.getElementById('add-product-form').addEventListener('submit', handleAddProduct);
           document.getElementById('product-search').addEventListener('input', function(e) { populateProductTable(filterData(ALL_PRODUCTS, e.target.value, [0, 1])); });
@@ -345,7 +327,6 @@
           document.getElementById('confirm-print-no').addEventListener('click', function() { document.getElementById('print-invoice-modal').style.display = 'none'; });
           document.getElementById('add-brand-form').addEventListener('submit', handleAddBrand);
           document.getElementById('brand-search').addEventListener('input', function(e) { populateBrandTable(ALL_BRANDS.filter(function(b){ return b.toLowerCase().includes(e.target.value.toLowerCase()); })); });
-          
           var brandInput = document.getElementById('new-pbrand');
           var suggestionsContainer = document.getElementById('brand-suggestions');
           brandInput.addEventListener('input', function() {
@@ -366,26 +347,22 @@
               } else { suggestionsContainer.style.display = 'none'; }
           });
           document.addEventListener('click', function(e){ if (!brandInput.contains(e.target) && !suggestionsContainer.contains(e.target)) { suggestionsContainer.style.display = 'none'; } });
-          
           document.getElementById('add-stock-btn').addEventListener('click', openAddStockModal);
           document.getElementById('check-stock-sku-btn').addEventListener('click', handleCheckStockSku);
           document.getElementById('add-stock-sku').addEventListener('keydown', function(e) { if(e.key === 'Enter') { e.preventDefault(); handleCheckStockSku(); } });
           document.getElementById('save-add-stock-btn').addEventListener('click', handleSaveStock);
           document.getElementById('cancel-add-stock').addEventListener('click', closeAddStockModal);
       }
-
       function openAddStockModal() {
           document.getElementById('add-stock-modal').style.display = 'flex';
           document.getElementById('add-stock-sku').focus();
       }
-
       function closeAddStockModal() {
           document.getElementById('add-stock-modal').style.display = 'none';
           document.getElementById('add-stock-sku').value = '';
           document.getElementById('add-stock-quantity').value = '';
           document.getElementById('add-stock-product-info').classList.add('hidden');
       }
-
       function handleCheckStockSku() {
           var sku = document.getElementById('add-stock-sku').value.trim();
           if (!sku) return;
@@ -401,7 +378,6 @@
               infoDiv.classList.add('hidden');
           }
       }
-
       async function handleSaveStock() {
           var sku = document.getElementById('add-stock-sku').value.trim();
           var quantityInput = document.getElementById('add-stock-quantity');
@@ -426,16 +402,14 @@
             } else {
                 onFailure(res);
             }
-          } catch (e) { /* handled in callAppsScript */ }
+          } catch (e) {}
       }
-      
       function updateDashboard(data) { document.getElementById('today-sales').textContent = data.todaysSales || '0.00'; document.getElementById('month-sales').textContent = data.monthsSales || '0.00'; document.getElementById('today-qty').textContent = data.todaysSaleQty || '0'; }
       function populateProductTable(products) { var tbody = document.getElementById('product-list-body'); tbody.innerHTML = products.map(function(p) { return `<tr><td class="py-2 pl-4 pr-3 text-sm">${p[0]}</td><td class="px-3 py-2 text-sm">${p[1]}</td><td class="px-3 py-2 text-sm">${p[7] || ''}</td><td class="px-3 py-2 text-sm">${p[2]}</td><td class="px-3 py-2 text-sm">${p[3]}</td></tr>`; }).join(''); }
       function populateStockTable(products) { var tbody = document.getElementById('stock-list-body'); tbody.innerHTML = products.map(function(p) { var qtyClass = parseInt(p[5]) <= 5 ? 'text-red-600 font-bold' : ''; return `<tr><td class="py-2 pl-4 pr-3 text-sm">${p[0]}</td><td class="px-3 py-2 text-sm">${p[1]}</td><td class="px-3 py-2 text-sm">${p[7] || ''}</td><td class="px-3 py-2 text-sm">${p[3]}</td><td class="px-3 py-2 text-sm">${p[4]}</td><td class="px-3 py-2 text-sm ${qtyClass}">${p[5]}</td><td class="px-3 py-2 text-sm">${p[6]}</td></tr>`; }).join(''); }
       function populateCustomerTable(customers) { var tbody = document.getElementById('customer-list-body'); tbody.innerHTML = customers.map(function(c) { return `<tr data-original-phone="${c[1]}"><td class="py-2 pl-4 pr-3 text-sm"><input type="text" value="${c[0]}" class="w-full bg-transparent p-1 customer-edit-input customer-edit-name" readonly></td><td class="px-3 py-2 text-sm"><input type="text" value="${c[1]}" class="w-full bg-transparent p-1 customer-edit-input customer-edit-phone" readonly></td><td class="px-3 py-2 text-sm"><input type="text" value="${c[2]}" class="w-full bg-transparent p-1 customer-edit-input customer-edit-address" readonly></td><td class="px-3 py-2 text-sm"><button class="text-indigo-600 hover:text-indigo-900 edit-customer-btn">Edit</button><button class="text-green-600 hover:text-green-900 save-customer-btn hidden">Save</button></td></tr>`; }).join(''); tbody.querySelectorAll('.edit-customer-btn').forEach(function(b) { b.addEventListener('click', handleEditCustomer); }); tbody.querySelectorAll('.save-customer-btn').forEach(function(b) { b.addEventListener('click', handleSaveCustomerUpdate); }); }
       function populateSalesTable(sales) { var tbody = document.getElementById('sales-list-body'); tbody.innerHTML = sales.map(function(s) { return `<tr><td class="py-2 pl-4 pr-3 text-sm">${s[0]}</td><td class="px-3 py-2 text-sm">${s[1]}</td><td class="px-3 py-2 text-sm">${s[2]}</td><td class="px-3 py-2 text-sm">${s[3]}</td><td class="px-3 py-2 text-sm">${s[4]}</td><td class="px-3 py-2 text-sm">${s[6] || '0.00'}</td><td class="px-3 py-2 text-sm">${s[5]}</td><td class="px-3 py-2 text-sm">${s[9] || '0.00'}</td><td class="px-3 py-2 text-sm">${s[7]}</td><td class="px-3 py-2 text-sm">${s[8]}</td></tr>`; }).join(''); }
       function populateBrandTable(brands) { var tbody = document.getElementById('brand-list-body'); tbody.innerHTML = brands.map(function(b) { return `<tr data-original-brand="${b}"><td class="py-2 pl-4 pr-3 text-sm"><input type="text" value="${b}" class="w-full bg-transparent p-1 brand-edit-input" readonly></td><td class="px-3 py-2 text-sm"><button class="text-indigo-600 hover:text-indigo-900 edit-brand-btn">Edit</button><button class="text-green-600 hover:text-green-900 save-brand-btn hidden">Save</button></td></tr>`; }).join(''); tbody.querySelectorAll('.edit-brand-btn').forEach(function(btn){ btn.addEventListener('click', handleEditBrand); }); tbody.querySelectorAll('.save-brand-btn').forEach(function(btn){ btn.addEventListener('click', handleSaveBrandUpdate); }); }
-      
       async function handleAddProduct(e) { e.preventDefault(); var brandName = document.getElementById('new-pbrand').value.trim(); if (ALL_BRANDS.indexOf(brandName) === -1 && brandName !== '') { return showToast('Brand not found. Please add the brand first.', 'error'); } var p = { name: document.getElementById('new-pname').value, purchasePrice: document.getElementById('new-pprice').value, mrp: document.getElementById('new-mrp').value, quantity: document.getElementById('new-pqty').value, brand: brandName }; try { const r = await callAppsScript('addNewProduct', p); if(r.success) { showToast('Product added!', 'success'); ALL_PRODUCTS.push(r.newProduct); populateProductTable(ALL_PRODUCTS); populateStockTable(ALL_PRODUCTS); e.target.reset(); } else { onFailure(r); } } catch(err) {} }
       function handleSkuEnter(e) { if (e.key === 'Enter') { e.preventDefault(); var sku = e.target.value; if (!sku) return; var p = ALL_PRODUCTS.find(function(p) { return p[0].toString() === sku; }); if (p) { document.getElementById('bill-pname').value = p[1]; document.getElementById('bill-avail-qty').value = p[5]; document.getElementById('bill-sale-qty').focus(); } else { showToast('Product not found', 'error'); document.getElementById('bill-pname').value = ''; document.getElementById('bill-avail-qty').value = ''; } } }
       function handleSaleQtyEnter(e) { if (e.key === 'Enter') { e.preventDefault(); var sku = document.getElementById('bill-sku').value; var qty = parseInt(e.target.value); var p = ALL_PRODUCTS.find(function(p) { return p[0].toString() === sku; }); var avail = parseInt(document.getElementById('bill-avail-qty').value); if (!p || !qty || qty <= 0) return; if (qty > avail) { showToast('Only ' + avail + ' in stock!', 'error'); return; } SALE_LIST_ITEMS.push({ sku: p[0], name: p[1], mrp: parseFloat(p[3]), quantity: qty, total: parseFloat(p[3]) * qty }); renderSaleList(); updateBillingSummary(); document.getElementById('bill-sku').value = ''; document.getElementById('bill-pname').value = ''; document.getElementById('bill-avail-qty').value = ''; document.getElementById('bill-sale-qty').value = ''; document.getElementById('bill-sku').focus(); } }
@@ -443,8 +417,8 @@
       async function handleSaveNewCustomer(e) { e.preventDefault(); var c = { phone: document.getElementById('new-cust-modal-phone').textContent, name: document.getElementById('new-cust-modal-name').value, address: document.getElementById('new-cust-modal-address').value }; try { const r = await callAppsScript('addNewCustomer', c); if (r.success) { showToast('Customer saved!', 'success'); ALL_CUSTOMERS.push(r.newCustomer); populateCustomerTable(ALL_CUSTOMERS); document.getElementById('cust-phone').value = r.newCustomer[1]; document.getElementById('cust-name').value = r.newCustomer[0]; document.getElementById('cust-address').value = r.newCustomer[2]; document.getElementById('add-customer-modal').style.display = 'none'; e.target.reset(); } else { onFailure(r); } } catch(err){} }
       async function handleBillNow() { if (SALE_LIST_ITEMS.length === 0) { return showToast('Add items first.', 'error'); } if (!document.getElementById('cust-phone').value) { return showToast('Enter customer phone.', 'error'); } var s = calculateBillingSummary(); var d = { customer: { phone: document.getElementById('cust-phone').value, name: document.getElementById('cust-name').value || 'Walk-in', address: document.getElementById('cust-address').value }, items: SALE_LIST_ITEMS, subtotal: s.subtotal, discount: s.discountString, shipping: s.shipping, total: s.total, paymentAmount: s.paymentAmount, dueAmount: s.dueAmount }; try { const r = await callAppsScript('processSale', d); if (r.success) { LATEST_RECEIPT_DATA = r.receiptData; document.getElementById('print-invoice-modal').style.display = 'flex'; resetBillingPage(); const data = await callAppsScript('getInitialData'); onInitialDataSuccess(data); } else { onFailure(r); } } catch(err){} }
       function handleEditCustomer(e) { var row = e.target.closest('tr'); row.querySelectorAll('.customer-edit-input').forEach(function(i) { i.readOnly = false; }); row.querySelector('.edit-customer-btn').classList.add('hidden'); row.querySelector('.save-customer-btn').classList.remove('hidden'); }
-      async function handleSaveCustomerUpdate(e) { var row = e.target.closest('tr'); var d = { originalPhone: row.dataset.originalPhone, newCustomerData: { name: row.querySelector('.customer-edit-name').value, phone: row.querySelector('.customer-edit-phone').value, address: row.querySelector('.customer-edit-address').value } }; try { const r = await callAppsScript('updateCustomer', d); if (r.success) { showToast(r.message, 'success'); const c = await callAppsScript('getCustomerData'); ALL_CUSTOMERS = c; populateCustomerTable(ALL_CUSTOMERS); } else { onFailure(r); } } catch(err){} }
-      function handleShowSalesReport() { var from = document.getElementById('sales-from-date').value, to = document.getElementById('sales-to-date').value, term = document.getElementById('sales-search').value.toLowerCase(); var f = ALL_SALES.filter(function(s) { var d = new Date(s[1]); return (!from || d >= new Date(from)) && (!to || d <= new Date(new Date(to).setHours(23,59,59))) && (!term || s[0].toString().toLowerCase().includes(term) || s[3].toLowerCase().includes(term)); }); populateSalesTable(f); }
+      async function handleSaveCustomerUpdate(e) { var row = e.target.closest('tr'); var d = { originalPhone: row.dataset.originalPhone, newCustomerData: { name: row.querySelector('.customer-edit-name').value, phone: row.querySelector('.customer-edit-phone').value, address: row.querySelector('.customer-edit-address').value } }; try { const r = await callAppsScript('updateCustomer', d); if (r.success) { showToast(r.message, 'success'); const { customers } = await callAppsScript('getInitialData'); ALL_CUSTOMERS = customers; populateCustomerTable(ALL_CUSTOMERS); } else { onFailure(r); } } catch(err){} }
+      function handleShowSalesReport() { var from = document.getElementById('sales-from-date').value, to = document.getElementById('sales-to-date').value, term = document.getElementById('sales-search').value.toLowerCase(); var f = ALL_SALES.filter(function(s) { return (!from || new Date(s[1].split(' ')[0].split('/').reverse().join('-')) >= new Date(from)) && (!to || new Date(s[1].split(' ')[0].split('/').reverse().join('-')) <= new Date(to)) && (!term || s[0].toString().toLowerCase().includes(term) || s[3].toLowerCase().includes(term)); }); populateSalesTable(f); }
       async function handleReprint() { var id = document.getElementById('reprint-invoice-id').value; if (!id) { return showToast('Enter invoice number.', 'error'); } try { const r = await callAppsScript('findInvoice', id); if (r.success) { printInvoice(r.invoiceData); } else { onFailure(r); } } catch(err){} }
       async function handleFindInvoiceForReturn() { var id = document.getElementById('return-invoice-id').value; if (!id) return; RETURN_QUEUE = []; renderReturnQueue(); document.getElementById('return-list-container').style.display = 'none'; try { const res = await callAppsScript('getReturnableInvoiceDetails', id); if (res.success) { document.getElementById('return-invoice-display').textContent = '#' + res.invoiceId; var list = document.getElementById('return-product-list'); list.innerHTML = res.products.map(function(p) { var statusClass = p.returnableQty > 0 ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-400 cursor-not-allowed'; var statusText = p.returnableQty > 0 ? 'Return' : 'Returned'; return `<div class="flex justify-between items-center bg-gray-100 p-3 rounded-md"><div><p class="font-semibold">${p.name}</p><p class="text-sm text-gray-500">SKU: ${p.sku} | Sold: ${p.soldQty} | Returned: ${p.returnedQty}</p></div><button class="text-white px-3 py-1 rounded-md open-return-modal-btn ${statusClass}" data-sku="${p.sku}" data-name="${p.name}" data-invoiceid="${res.invoiceId}" data-max-return="${p.returnableQty}" ${p.returnableQty <= 0 ? 'disabled' : ''}>${statusText}</button></div>`; }).join(''); document.getElementById('return-products-container').style.display = 'block'; list.querySelectorAll('.open-return-modal-btn').forEach(function(b) { b.addEventListener('click', function() { var max = this.dataset.maxReturn; document.getElementById('return-modal-pname').textContent = this.dataset.name; document.getElementById('return-modal-sku').value = this.dataset.sku; document.getElementById('return-modal-invoiceid').value = this.dataset.invoiceid; document.getElementById('return-modal-maxqty').value = max; var qtyInput = document.getElementById('return-modal-qty'); qtyInput.max = max; qtyInput.value = 1; document.getElementById('return-qty-modal').style.display = 'flex'; qtyInput.focus(); }); }); } else { onFailure(res); } } catch(err){} }
       function handleAddToReturnQueue(e) { e.preventDefault(); var qty = parseInt(document.getElementById('return-modal-qty').value); var max = parseInt(document.getElementById('return-modal-maxqty').value); if (qty > max) { return showToast('Cannot return more than ' + max + ' items.', 'error'); } var item = { invoiceId: document.getElementById('return-modal-invoiceid').value, sku: document.getElementById('return-modal-sku').value, name: document.getElementById('return-modal-pname').textContent, quantity: qty }; RETURN_QUEUE.push(item); renderReturnQueue(); document.getElementById('return-qty-modal').style.display = 'none'; document.getElementById('return-qty-form').reset(); }
@@ -454,7 +428,7 @@
       async function handleGenerateBarcodes() { if (BARCODE_PRINT_LIST.length === 0) { return showToast('Add items to queue first', 'error'); } try { const r = await callAppsScript('getProductsForBarcode', BARCODE_PRINT_LIST); if (r.success) { printBarcodes(r.labels); BARCODE_PRINT_LIST = []; renderBarcodePrintList(); } else { onFailure(r); } } catch(err) {} }
       async function handleAddBrand(e){ e.preventDefault(); var brandName = document.getElementById('new-brand-name').value.trim(); if(!brandName) { return showToast('Brand name is required.', 'error'); } try { const res = await callAppsScript('addNewBrand', brandName); if(res.success){ showToast('Brand added!', 'success'); ALL_BRANDS.push(res.newBrand); populateBrandTable(ALL_BRANDS); e.target.reset(); } else { onFailure(res); } } catch(err){} }
       function handleEditBrand(e){ var row = e.target.closest('tr'); var input = row.querySelector('.brand-edit-input'); input.readOnly = false; input.classList.add('customer-edit-input'); row.querySelector('.edit-brand-btn').classList.add('hidden'); row.querySelector('.save-brand-btn').classList.remove('hidden'); }
-      async function handleSaveBrandUpdate(e){ var row = e.target.closest('tr'); var data = { originalName: row.dataset.originalBrand, newName: row.querySelector('.brand-edit-input').value }; try { const res = await callAppsScript('updateBrand', data); if(res.success){ showToast(res.message, 'success'); const brands = await callAppsScript('getBrandData'); ALL_BRANDS = brands.brands; populateBrandTable(ALL_BRANDS); } else { onFailure(res); } } catch(err) {} }
+      async function handleSaveBrandUpdate(e){ var row = e.target.closest('tr'); var data = { originalName: row.dataset.originalBrand, newName: row.querySelector('.brand-edit-input').value }; try { const res = await callAppsScript('updateBrand', data); if(res.success){ showToast(res.message, 'success'); const { brands } = await callAppsScript('getInitialData'); ALL_BRANDS = brands; populateBrandTable(ALL_BRANDS); } else { onFailure(res); } } catch(err) {} }
       function renderSaleList() { var tbody = document.getElementById('sale-list-body'); tbody.innerHTML = SALE_LIST_ITEMS.map(function(i, x) { return `<tr data-index="${x}"><td class="py-2 pl-4 pr-3 text-sm">${i.name}</td><td class="px-3 py-2 text-sm">${i.quantity}</td><td class="px-3 py-2 text-sm">${i.mrp.toFixed(2)}</td><td class="px-3 py-2 text-sm">${i.total.toFixed(2)}</td><td class="px-3 py-2 text-sm"><button class="text-red-500 remove-sale-item-btn">X</button></td></tr>`; }).join(''); tbody.querySelectorAll('.remove-sale-item-btn').forEach(function(b) { b.addEventListener('click', function(e) { SALE_LIST_ITEMS.splice(e.target.closest('tr').dataset.index, 1); renderSaleList(); updateBillingSummary(); }); }); }
       function calculateBillingSummary() { var sub = SALE_LIST_ITEMS.reduce(function(s, i) { return s + i.total; }, 0); var dVal = parseFloat(document.getElementById('discount-value').value) || 0; var dType = document.getElementById('discount-type').value; var ship = parseFloat(document.getElementById('shipping-charges').value) || 0; var pay = parseFloat(document.getElementById('payment-amount').value) || 0; var dAmt = 0, dStr = "0"; if (dType === 'percent') { dAmt = (sub * dVal) / 100; dStr = dVal + '%'; } else { dAmt = dVal; dStr = dVal.toString(); } var tot = sub - dAmt + ship; var due = tot - pay; return { subtotal: sub, discountAmount: dAmt, shipping: ship, total: tot, paymentAmount: pay, dueAmount: due, discountString: dStr }; }
       function updateBillingSummary() { var s = calculateBillingSummary(); document.getElementById('summary-subtotal').textContent = s.subtotal.toFixed(2); document.getElementById('summary-due-amount').textContent = s.dueAmount.toFixed(2); }
@@ -465,7 +439,49 @@
       function filterData(dataArray, searchTerm, columnsToSearch) { var term = searchTerm.toLowerCase(); if (!term) return dataArray; return dataArray.filter(function(row) { return columnsToSearch.some(function(colIndex) { return row[colIndex] && row[colIndex].toString().toLowerCase().includes(term); }); }); }
       function printInvoice(data) { var itemsHtml = data.items.map(function(i) { return `<tr><td>${i.name}</td><td>${i.quantity}</td><td>${(typeof i.mrp === 'number' ? i.mrp.toFixed(2) : i.mrp)}</td><td>${(typeof i.total === 'number' ? i.total.toFixed(2) : i.total)}</td></tr>`; }).join(''); var receiptContent = `<div class="invoice"><div class="center bold">SUNDORICA</div><div class="center">Road-16,House-28,Mirpur 11</div><div class="center">Phone: 01684461983</div><hr><div>Date: ${data.saleDate}</div><div>Invoice #: ${data.invoiceId}</div><div style="margin-top:10px;"><div class="bold">To,</div><div>${data.customer.name}</div><div>${data.customer.address || ''}</div><div>Phone: ${data.customer.phone}</div></div><div class="section-title">Product Details</div><table><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${itemsHtml}</tbody></table><div class="totals"><div>Subtotal: ${data.subtotal.toFixed(2)} BDT</div><div>Discount: ${(parseFloat(data.discount) || 0).toFixed(2)} BDT</div><div>Shipping Charges: ${(parseFloat(data.shipping) || 0).toFixed(2)} BDT</div><div>Paid Amount: ${(parseFloat(data.payment) || 0).toFixed(2)} BDT</div><div><strong>Due Amount:</strong> ${(parseFloat(data.due) || 0).toFixed(2)} BDT</div></div><div class="footer">--- Thank you for choosing SUNDORICA. Stay elegant, stay confident. ---</div></div>`; var styles = `@page { size: 58mm auto; margin: 0; } body { font-family: 'Courier New', monospace; width: 88mm; margin: 0; padding: 0; font-size: 12px; } .invoice { padding: 3mm; box-sizing: border-box; } .center { text-align: center; } .bold { font-weight: bold; } hr { border: none; border-top: 1px dashed #000; margin: 5px 0; } table { width: 100%; border-collapse: collapse; margin-top: 5px; } th, td { text-align: left; padding: 2px 0; } .section-title { margin-top: 10px; font-weight: bold; text-decoration: underline; } .totals { margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px; } .totals div { padding: 1px 0; } .footer { margin-top: 10px; text-align: center; font-size: 10px; }`; var iframe = document.createElement('iframe'); iframe.style.position = 'absolute'; iframe.style.width = '0px'; iframe.style.height = '0px'; iframe.style.border = '0'; document.body.appendChild(iframe); var doc = iframe.contentDocument || iframe.contentWindow.document; doc.open(); doc.write(`<!DOCTYPE html><html><head><title>Invoice #${data.invoiceId}</title><style>${styles}</style></head><body>${receiptContent}</body></html>`); doc.close(); setTimeout(function() { iframe.contentWindow.focus(); iframe.contentWindow.print(); document.body.removeChild(iframe); }, 500); }
       function printBarcodes(labels) { var perPage = 50; var htmlContent = ''; for (var i = 0; i < labels.length; i += perPage) { var pageLabels = labels.slice(i, i + perPage); htmlContent += '<div class="page">' + pageLabels.map(function(l) { var u = 'https://bwipjs-api.metafloor.com/?bcid=code128&text=' + encodeURIComponent(l.code) + '&scale=1&width=200&height=40&includetext=false'; return `<div class="label"><div class="store">SUNDORICA</div><div class="product">${l.productName || ""}</div><img class="barcode" src="${u}" alt="Barcode for ${l.code}"><div class="code"> ${l.code}</div><div class="price">Price: ৳${l.price} + VAT</div></div>`; }).join('') + '</div>'; } var bH = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>📦 Barcode Labels Preview</title><style>body{font-family:Arial,sans-serif;margin:10px;}.print-button{position:fixed;top:10px;right:20px;padding:10px 20px;font-size:16px;z-index:999;background:#007bff;color:white;border:none;border-radius:5px;cursor:pointer;}.page{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:930px;margin:0 auto;box-sizing:border-box;padding:10px;page-break-after:always;}.label{width:173px;height:110px;border:1px solid #000;padding:6px 4px;box-sizing:border-box;text-align:center;font-size:11px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;}.store{font-weight:bold;font-size:12px;}.product{font-size:10px;line-height:1.2;word-wrap:break-word;}.code{font-size:10px;letter-spacing:1px;margin-top:2px;}.price{font-weight:bold;font-size:11px;color:#000;margin-top:2px;}img.barcode{display:block;margin:2px auto 1px;max-height:40px;width:140px;object-fit:contain;}@media print{.print-button{display:none!important;}}</style></head><body><button class="print-button" onclick="window.print()">🖨️ Print</button>${htmlContent}</body></html>`; var pW = window.open('', '_blank'); pW.document.write(bH); pW.document.close(); }
-      function downloadCsv(filename, tableId) { var table = document.getElementById(tableId); if (!table) { console.error("Table not found:", tableId); return; } var csv = []; var headers = []; table.querySelectorAll('thead th').forEach(function(th) { headers.push('"' + th.textContent.trim() + '"'); }); csv.push(headers.join(',')); table.querySelectorAll('tbody tr').forEach(function(row) { var rowData = []; row.querySelectorAll('td').forEach(function(td, index) { var cellText = td.textContent.trim(); if (index === 3 && cellText) { rowData.push('="'+ cellText + '"'); } else { rowData.push('"' + cellText.replace(/"/g, '""') + '"'); } }); csv.push(rowData.join(',')); }); var csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv.join('\n')); var link = document.createElement("a"); link.setAttribute("href", csvContent); link.setAttribute("download", filename); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+      
+      // **** MODIFIED HERE ****
+      function downloadCsv(filename, tableId) {
+          var table = document.getElementById(tableId);
+          if (!table) {
+              console.error("Table not found:", tableId);
+              return;
+          }
+          var csv = [];
+          var headers = [];
+          table.querySelectorAll('thead th').forEach(function(th) {
+              headers.push('"' + th.textContent.trim() + '"');
+          });
+          csv.push(headers.join(','));
+          table.querySelectorAll('tbody tr').forEach(function(row) {
+              var rowData = [];
+              row.querySelectorAll('td').forEach(function(td, index) {
+                  var cellText = td.textContent.trim();
+                  // Forcing phone number to be treated as text in Excel
+                  if (index === 3 && cellText) { 
+                      rowData.push('="' + cellText + '"');
+                  } else {
+                      rowData.push('"' + cellText.replace(/"/g, '""') + '"');
+                  }
+              });
+              csv.push(rowData.join(','));
+          });
+          
+          // Add BOM for UTF-8 Support in Excel
+          var csvContent = '\uFEFF' + csv.join('\n');
+          
+          var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          var link = document.createElement("a");
+          if (link.download !== undefined) {
+              var url = URL.createObjectURL(blob);
+              link.setAttribute("href", url);
+              link.setAttribute("download", filename);
+              link.style.visibility = 'hidden';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+          }
+      }
     </script>
 </body>
 </html>
