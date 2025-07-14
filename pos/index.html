@@ -2,7 +2,7 @@
 <html>
 <head>
     <base target="_top">
-    <title>Sundorica_POS</title>
+    <title>POS System</title>
     <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -186,15 +186,11 @@
           try {
               const response = await fetch(WEB_APP_URL, {
                   method: 'POST',
-                  headers: {
-                      'Content-Type': 'text/plain;charset=utf-8',
-                  },
+                  headers: { 'Content-Type': 'text/plain;charset=utf-8', },
                   body: JSON.stringify({ action: action, payload: payload }),
                   redirect: 'follow'
               });
-              if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-              }
+              if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
               const result = await response.json();
               hideLoader();
               return result;
@@ -415,7 +411,47 @@
       function handleSaleQtyEnter(e) { if (e.key === 'Enter') { e.preventDefault(); var sku = document.getElementById('bill-sku').value; var qty = parseInt(e.target.value); var p = ALL_PRODUCTS.find(function(p) { return p[0].toString() === sku; }); var avail = parseInt(document.getElementById('bill-avail-qty').value); if (!p || !qty || qty <= 0) return; if (qty > avail) { showToast('Only ' + avail + ' in stock!', 'error'); return; } SALE_LIST_ITEMS.push({ sku: p[0], name: p[1], mrp: parseFloat(p[3]), quantity: qty, total: parseFloat(p[3]) * qty }); renderSaleList(); updateBillingSummary(); document.getElementById('bill-sku').value = ''; document.getElementById('bill-pname').value = ''; document.getElementById('bill-avail-qty').value = ''; document.getElementById('bill-sale-qty').value = ''; document.getElementById('bill-sku').focus(); } }
       function handleCustomerPhoneEnter(e) { if (e.key === 'Enter') { e.preventDefault(); var phone = e.target.value; if (!phone) return; var sPhone = phone.startsWith('0') ? phone : '0' + phone; var c = ALL_CUSTOMERS.find(function(c) { return c[1] === sPhone; }); if (c) { document.getElementById('cust-name').value = c[0]; document.getElementById('cust-address').value = c[2]; } else { document.getElementById('new-cust-modal-phone').textContent = phone; document.getElementById('add-customer-modal').style.display = 'flex'; document.getElementById('new-cust-modal-name').focus(); } } }
       async function handleSaveNewCustomer(e) { e.preventDefault(); var c = { phone: document.getElementById('new-cust-modal-phone').textContent, name: document.getElementById('new-cust-modal-name').value, address: document.getElementById('new-cust-modal-address').value }; try { const r = await callAppsScript('addNewCustomer', c); if (r.success) { showToast('Customer saved!', 'success'); ALL_CUSTOMERS.push(r.newCustomer); populateCustomerTable(ALL_CUSTOMERS); document.getElementById('cust-phone').value = r.newCustomer[1]; document.getElementById('cust-name').value = r.newCustomer[0]; document.getElementById('cust-address').value = r.newCustomer[2]; document.getElementById('add-customer-modal').style.display = 'none'; e.target.reset(); } else { onFailure(r); } } catch(err){} }
-      async function handleBillNow() { if (SALE_LIST_ITEMS.length === 0) { return showToast('Add items first.', 'error'); } if (!document.getElementById('cust-phone').value) { return showToast('Enter customer phone.', 'error'); } var s = calculateBillingSummary(); var d = { customer: { phone: document.getElementById('cust-phone').value, name: document.getElementById('cust-name').value || 'Walk-in', address: document.getElementById('cust-address').value }, items: SALE_LIST_ITEMS, subtotal: s.subtotal, discount: s.discountString, shipping: s.shipping, total: s.total, paymentAmount: s.paymentAmount, dueAmount: s.dueAmount }; try { const r = await callAppsScript('processSale', d); if (r.success) { LATEST_RECEIPT_DATA = r.receiptData; document.getElementById('print-invoice-modal').style.display = 'flex'; resetBillingPage(); const data = await callAppsScript('getInitialData'); onInitialDataSuccess(data); } else { onFailure(r); } } catch(err){} }
+      
+      // **** OPTIMIZED handleBillNow FUNCTION ****
+      async function handleBillNow() {
+          if (SALE_LIST_ITEMS.length === 0) { return showToast('Add items first.', 'error'); }
+          if (!document.getElementById('cust-phone').value) { return showToast('Enter customer phone.', 'error'); }
+          
+          var s = calculateBillingSummary();
+          var d = { customer: { phone: document.getElementById('cust-phone').value, name: document.getElementById('cust-name').value || 'Walk-in', address: document.getElementById('cust-address').value }, items: SALE_LIST_ITEMS, subtotal: s.subtotal, discount: s.discountString, shipping: s.shipping, total: s.total, paymentAmount: s.paymentAmount, dueAmount: s.dueAmount };
+          
+          try {
+              const r = await callAppsScript('processSale', d);
+              if (r.success) {
+                  LATEST_RECEIPT_DATA = r.receiptData;
+                  document.getElementById('print-invoice-modal').style.display = 'flex';
+                  resetBillingPage();
+                  
+                  // --- OPTIMIZED REFRESH: START ---
+                  // Instead of reloading all data, just update the changed stock
+                  if (r.updatedStock && r.updatedStock.length > 0) {
+                      r.updatedStock.forEach(updatedProduct => {
+                          const productIndex = ALL_PRODUCTS.findIndex(p => p[0].toString() === updatedProduct[0].toString());
+                          if (productIndex > -1) {
+                              ALL_PRODUCTS[productIndex] = updatedProduct;
+                          }
+                      });
+                      // Refresh only the tables that show stock info
+                      populateStockTable(ALL_PRODUCTS);
+                      populateProductTable(ALL_PRODUCTS);
+                  }
+                  
+                  // Refresh dashboard data with a lightweight call
+                  const dashboardData = await callAppsScript('getDashboardData');
+                  updateDashboard(dashboardData);
+                  // --- OPTIMIZED REFRESH: END ---
+
+              } else {
+                  onFailure(r);
+              }
+          } catch (err) {}
+      }
+
       function handleEditCustomer(e) { var row = e.target.closest('tr'); row.querySelectorAll('.customer-edit-input').forEach(function(i) { i.readOnly = false; }); row.querySelector('.edit-customer-btn').classList.add('hidden'); row.querySelector('.save-customer-btn').classList.remove('hidden'); }
       async function handleSaveCustomerUpdate(e) { var row = e.target.closest('tr'); var d = { originalPhone: row.dataset.originalPhone, newCustomerData: { name: row.querySelector('.customer-edit-name').value, phone: row.querySelector('.customer-edit-phone').value, address: row.querySelector('.customer-edit-address').value } }; try { const r = await callAppsScript('updateCustomer', d); if (r.success) { showToast(r.message, 'success'); const { customers } = await callAppsScript('getInitialData'); ALL_CUSTOMERS = customers; populateCustomerTable(ALL_CUSTOMERS); } else { onFailure(r); } } catch(err){} }
       function handleShowSalesReport() { var from = document.getElementById('sales-from-date').value, to = document.getElementById('sales-to-date').value, term = document.getElementById('sales-search').value.toLowerCase(); var f = ALL_SALES.filter(function(s) { return (!from || new Date(s[1].split(' ')[0].split('/').reverse().join('-')) >= new Date(from)) && (!to || new Date(s[1].split(' ')[0].split('/').reverse().join('-')) <= new Date(to)) && (!term || s[0].toString().toLowerCase().includes(term) || s[3].toLowerCase().includes(term)); }); populateSalesTable(f); }
@@ -439,49 +475,7 @@
       function filterData(dataArray, searchTerm, columnsToSearch) { var term = searchTerm.toLowerCase(); if (!term) return dataArray; return dataArray.filter(function(row) { return columnsToSearch.some(function(colIndex) { return row[colIndex] && row[colIndex].toString().toLowerCase().includes(term); }); }); }
       function printInvoice(data) { var itemsHtml = data.items.map(function(i) { return `<tr><td>${i.name}</td><td>${i.quantity}</td><td>${(typeof i.mrp === 'number' ? i.mrp.toFixed(2) : i.mrp)}</td><td>${(typeof i.total === 'number' ? i.total.toFixed(2) : i.total)}</td></tr>`; }).join(''); var receiptContent = `<div class="invoice"><div class="center bold">SUNDORICA</div><div class="center">Road-16,House-28,Mirpur 11</div><div class="center">Phone: 01684461983</div><hr><div>Date: ${data.saleDate}</div><div>Invoice #: ${data.invoiceId}</div><div style="margin-top:10px;"><div class="bold">To,</div><div>${data.customer.name}</div><div>${data.customer.address || ''}</div><div>Phone: ${data.customer.phone}</div></div><div class="section-title">Product Details</div><table><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${itemsHtml}</tbody></table><div class="totals"><div>Subtotal: ${data.subtotal.toFixed(2)} BDT</div><div>Discount: ${(parseFloat(data.discount) || 0).toFixed(2)} BDT</div><div>Shipping Charges: ${(parseFloat(data.shipping) || 0).toFixed(2)} BDT</div><div>Paid Amount: ${(parseFloat(data.payment) || 0).toFixed(2)} BDT</div><div><strong>Due Amount:</strong> ${(parseFloat(data.due) || 0).toFixed(2)} BDT</div></div><div class="footer">--- Thank you for choosing SUNDORICA. Stay elegant, stay confident. ---</div></div>`; var styles = `@page { size: 58mm auto; margin: 0; } body { font-family: 'Courier New', monospace; width: 88mm; margin: 0; padding: 0; font-size: 12px; } .invoice { padding: 3mm; box-sizing: border-box; } .center { text-align: center; } .bold { font-weight: bold; } hr { border: none; border-top: 1px dashed #000; margin: 5px 0; } table { width: 100%; border-collapse: collapse; margin-top: 5px; } th, td { text-align: left; padding: 2px 0; } .section-title { margin-top: 10px; font-weight: bold; text-decoration: underline; } .totals { margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px; } .totals div { padding: 1px 0; } .footer { margin-top: 10px; text-align: center; font-size: 10px; }`; var iframe = document.createElement('iframe'); iframe.style.position = 'absolute'; iframe.style.width = '0px'; iframe.style.height = '0px'; iframe.style.border = '0'; document.body.appendChild(iframe); var doc = iframe.contentDocument || iframe.contentWindow.document; doc.open(); doc.write(`<!DOCTYPE html><html><head><title>Invoice #${data.invoiceId}</title><style>${styles}</style></head><body>${receiptContent}</body></html>`); doc.close(); setTimeout(function() { iframe.contentWindow.focus(); iframe.contentWindow.print(); document.body.removeChild(iframe); }, 500); }
       function printBarcodes(labels) { var perPage = 50; var htmlContent = ''; for (var i = 0; i < labels.length; i += perPage) { var pageLabels = labels.slice(i, i + perPage); htmlContent += '<div class="page">' + pageLabels.map(function(l) { var u = 'https://bwipjs-api.metafloor.com/?bcid=code128&text=' + encodeURIComponent(l.code) + '&scale=1&width=200&height=40&includetext=false'; return `<div class="label"><div class="store">SUNDORICA</div><div class="product">${l.productName || ""}</div><img class="barcode" src="${u}" alt="Barcode for ${l.code}"><div class="code"> ${l.code}</div><div class="price">Price: ৳${l.price} + VAT</div></div>`; }).join('') + '</div>'; } var bH = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>📦 Barcode Labels Preview</title><style>body{font-family:Arial,sans-serif;margin:10px;}.print-button{position:fixed;top:10px;right:20px;padding:10px 20px;font-size:16px;z-index:999;background:#007bff;color:white;border:none;border-radius:5px;cursor:pointer;}.page{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:930px;margin:0 auto;box-sizing:border-box;padding:10px;page-break-after:always;}.label{width:173px;height:110px;border:1px solid #000;padding:6px 4px;box-sizing:border-box;text-align:center;font-size:11px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;}.store{font-weight:bold;font-size:12px;}.product{font-size:10px;line-height:1.2;word-wrap:break-word;}.code{font-size:10px;letter-spacing:1px;margin-top:2px;}.price{font-weight:bold;font-size:11px;color:#000;margin-top:2px;}img.barcode{display:block;margin:2px auto 1px;max-height:40px;width:140px;object-fit:contain;}@media print{.print-button{display:none!important;}}</style></head><body><button class="print-button" onclick="window.print()">🖨️ Print</button>${htmlContent}</body></html>`; var pW = window.open('', '_blank'); pW.document.write(bH); pW.document.close(); }
-      
-      // **** MODIFIED HERE ****
-      function downloadCsv(filename, tableId) {
-          var table = document.getElementById(tableId);
-          if (!table) {
-              console.error("Table not found:", tableId);
-              return;
-          }
-          var csv = [];
-          var headers = [];
-          table.querySelectorAll('thead th').forEach(function(th) {
-              headers.push('"' + th.textContent.trim() + '"');
-          });
-          csv.push(headers.join(','));
-          table.querySelectorAll('tbody tr').forEach(function(row) {
-              var rowData = [];
-              row.querySelectorAll('td').forEach(function(td, index) {
-                  var cellText = td.textContent.trim();
-                  // Forcing phone number to be treated as text in Excel
-                  if (index === 3 && cellText) { 
-                      rowData.push('="' + cellText + '"');
-                  } else {
-                      rowData.push('"' + cellText.replace(/"/g, '""') + '"');
-                  }
-              });
-              csv.push(rowData.join(','));
-          });
-          
-          // Add BOM for UTF-8 Support in Excel
-          var csvContent = '\uFEFF' + csv.join('\n');
-          
-          var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-          var link = document.createElement("a");
-          if (link.download !== undefined) {
-              var url = URL.createObjectURL(blob);
-              link.setAttribute("href", url);
-              link.setAttribute("download", filename);
-              link.style.visibility = 'hidden';
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-          }
-      }
+      function downloadCsv(filename, tableId) { var table = document.getElementById(tableId); if (!table) { console.error("Table not found:", tableId); return; } var csv = []; var headers = []; table.querySelectorAll('thead th').forEach(function(th) { headers.push('"' + th.textContent.trim() + '"'); }); csv.push(headers.join(',')); table.querySelectorAll('tbody tr').forEach(function(row) { var rowData = []; row.querySelectorAll('td').forEach(function(td, index) { var cellText = td.textContent.trim(); if (index === 3 && cellText) { rowData.push('="'+ cellText + '"'); } else { rowData.push('"' + cellText.replace(/"/g, '""') + '"'); } }); csv.push(rowData.join(',')); }); var csvContent = '\uFEFF' + csv.join('\n'); var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); var link = document.createElement("a"); if (link.download !== undefined) { var url = URL.createObjectURL(blob); link.setAttribute("href", url); link.setAttribute("download", filename); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); } }
     </script>
 </body>
 </html>
