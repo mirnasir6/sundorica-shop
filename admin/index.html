@@ -22,6 +22,8 @@
     .toast.success { background-color: #28a745; }
     .toast.error { background-color: #dc3545; }
     .dragging { opacity: 0.5; }
+    .image-status-overlay { position: absolute; inset: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; border-radius: 0.25rem; }
+    .image-status-overlay .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; width: 30px; height: 30px; }
   </style>
 </head>
 <body>
@@ -74,13 +76,12 @@
 
   <!-- Modals -->
   <div id="order-view-modal" class="modal"><div class="modal-content max-w-4xl"><span class="close-button" onclick="closeModal('order-view-modal')">&times;</span><h2 class="text-2xl font-bold mb-4">Order Details</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><h3 class="text-lg font-semibold border-b pb-2 mb-2">Customer Details</h3><div id="customer-details-content"></div></div><div><h3 class="text-lg font-semibold border-b pb-2 mb-2">Order Summary</h3><div id="order-summary-content"></div><div class="mt-4"><label for="order-status-dropdown" class="block text-sm font-medium text-gray-700">Order Status</label><select id="order-status-dropdown" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"><option>Panding Order</option><option>Paid</option><option>Courier</option><option>Delivery</option><option>Cancel</option><option>Return</option></select><input type="hidden" id="modal-order-id"><button id="btn-update-status" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Update Status</button></div></div></div></div></div>
-  <div id="product-form-modal" class="modal"><div class="modal-content max-w-3xl"><span class="close-button" onclick="closeModal('product-form-modal')">&times;</span><h2 id="product-modal-title" class="text-2xl font-bold mb-4">Add New Product</h2><form id="product-form"><input type="hidden" id="product-row-index"><input type="hidden" id="existing-image-links"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="text" id="product-name" placeholder="Product Name" class="p-2 border rounded w-full col-span-2" required><input type="number" id="product-price" placeholder="Price" class="p-2 border rounded" required><input type="number" id="product-compare-price" placeholder="Compare-at Price" class="p-2 border rounded"><input type="text" id="product-sku" placeholder="SKU (Stock Keeping Unit)" class="p-2 border rounded col-span-2" required><textarea id="product-description" placeholder="Description" class="p-2 border rounded w-full col-span-2" rows="3"></textarea><div class="col-span-2"><label class="block text-sm font-medium text-gray-700">Images</label><div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"><div class="space-y-1 text-center"><svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="flex text-sm text-gray-600"><label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"><span>Upload files</span><input id="file-upload" name="file-upload" type="file" class="sr-only" multiple accept="image/*"></label><p class="pl-1">or drag and drop</p></div><p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p></div></div><div id="image-preview-container" class="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4"></div></div><select id="product-category" class="p-2 border rounded col-span-2" required><option value="">Select Category</option><option value="Stitched">Stitched</option><option value="Unstitched">Unstitched</option><option value="Skin Care">Skin Care</option></select><div id="variant-options" class="col-span-2 hidden"><h4 class="font-semibold mb-2">Variants (Size & Quantity)</h4><div id="variant-list"></div><button type="button" id="add-variant-btn" class="mt-2 text-sm text-blue-500 hover:underline">+ Add Variant</button></div><div id="stock-option" class="col-span-2 hidden"><input type="number" id="available-stock" placeholder="Available Stock" class="p-2 border rounded w-full"></div></div><button type="submit" id="save-product-btn" class="mt-4 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save Product</button></form></div></div>
+  <div id="product-form-modal" class="modal"><div class="modal-content max-w-3xl"><span class="close-button" onclick="closeModal('product-form-modal')">&times;</span><h2 id="product-modal-title" class="text-2xl font-bold mb-4">Add New Product</h2><form id="product-form"><input type="hidden" id="product-row-index"><input type="hidden" id="existing-image-links"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="text" id="product-name" placeholder="Product Name" class="p-2 border rounded w-full col-span-2" required><input type="number" id="product-price" placeholder="Price" class="p-2 border rounded" required><input type="number" id="product-compare-price" placeholder="Compare-at Price" class="p-2 border rounded"><input type="text" id="product-sku" placeholder="SKU (Stock Keeping Unit)" class="p-2 border rounded col-span-2" required><textarea id="product-description" placeholder="Description" class="p-2 border rounded w-full col-span-2" rows="3"></textarea><div class="col-span-2"><label class="block text-sm font-medium text-gray-700">Images</label><div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"><div class="space-y-1 text-center"><svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="flex text-sm text-gray-600"><label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"><span>Select files</span><input id="file-upload" name="file-upload" type="file" class="sr-only" multiple accept="image/*"></label></div><p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p></div></div><div id="image-preview-container" class="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4"></div><button type="button" id="btn-upload-images" class="mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hidden"><i class="fas fa-upload mr-2"></i> Upload Selected Images</button></div><select id="product-category" class="p-2 border rounded col-span-2" required><option value="">Select Category</option><option value="Stitched">Stitched</option><option value="Unstitched">Unstitched</option><option value="Skin Care">Skin Care</option></select><div id="variant-options" class="col-span-2 hidden"><h4 class="font-semibold mb-2">Variants (Size & Quantity)</h4><div id="variant-list"></div><button type="button" id="add-variant-btn" class="mt-2 text-sm text-blue-500 hover:underline">+ Add Variant</button></div><div id="stock-option" class="col-span-2 hidden"><input type="number" id="available-stock" placeholder="Available Stock" class="p-2 border rounded w-full"></div></div><button type="submit" id="save-product-btn" class="mt-4 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save Product</button></form></div></div>
   <div id="delivery-form-modal" class="modal"><div class="modal-content max-w-md"><span class="close-button" onclick="closeModal('delivery-form-modal')">&times;</span><h2 id="delivery-modal-title" class="text-2xl font-bold mb-4">Add New Zone</h2><form id="delivery-form"><input type="hidden" id="zone-row-index"><input type="text" id="zone-name" placeholder="Zone Name" class="p-2 border rounded w-full mb-4" required><input type="number" id="zone-charge" placeholder="Delivery Charge" class="p-2 border rounded w-full mb-4" required><button type="submit" id="save-zone-btn" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save Zone</button></form></div></div>
   <div id="delete-confirm-modal" class="modal items-center justify-center"><div class="modal-content max-w-sm text-center"><h2 class="text-xl font-bold mb-4">Confirm Deletion</h2><p class="text-gray-700 mb-6">Are you sure you want to delete this product? This action cannot be undone.</p><div class="flex justify-center gap-4"><button id="cancel-delete-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancel</button><button id="confirm-delete-btn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Confirm Delete</button></div></div></div>
 
   <script>
-    // --- CONFIGURATION ---
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymrW4hYS23CJxNzuxIuYYFLIOTV_Xe8ymZ24JGXFuNfI4lxxiVLS2nTHlCdNJi32s/exec"; // <-- IMPORTANT: Paste your new Web App URL here
+    const WEB_APP_URL = "YOUR_NEW_WEB_APP_URL"; // <-- IMPORTANT: Paste your new Web App URL here
 
     const loader = document.getElementById('loader');
     function showLoader() { loader.classList.remove('hidden'); }
@@ -98,8 +99,7 @@
             toast.addEventListener('transitionend', () => toast.remove());
         }, 3000);
     }
-
-    // --- API HELPER ---
+    
     async function apiCall(action, payload = {}) {
         showLoader();
         const formData = new FormData();
@@ -107,10 +107,7 @@
         formData.append('payload', JSON.stringify(payload));
         
         try {
-            const response = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: formData,
-            });
+            const response = await fetch(WEB_APP_URL, { method: 'POST', body: formData });
             if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
@@ -118,32 +115,24 @@
         } catch (error) {
             console.error('API Call Error:', error);
             showToast(error.message, 'error');
-            throw error; // Re-throw to be caught by the caller if needed
+            throw error;
         } finally {
             hideLoader();
         }
     }
     
-    // --- Login Logic ---
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const credentials = {
-            username: document.getElementById('username').value,
-            password: document.getElementById('password').value
-        };
         try {
-            const result = await apiCall('verifyUser', credentials);
+            const result = await apiCall('verifyUser', { username: username.value, password: password.value });
             if (result.success) {
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('admin-panel').style.display = 'flex';
                 loadOrders();
             }
-        } catch (error) {
-            // Error is already shown by apiCall's toast
-        }
+        } catch (error) {}
     });
 
-    // --- Navigation ---
     const navLinks = document.querySelectorAll('aside nav a');
     const views = document.querySelectorAll('.main-content > div');
     navLinks.forEach(link => {
@@ -166,14 +155,8 @@
         return `<span class="px-2 py-1 text-xs font-semibold rounded-full ${statusMap[status] || 'bg-gray-200 text-gray-800'}">${status}</span>`;
     }
 
-    // --- Orders Logic ---
     let allOrders = [];
-    async function loadOrders() {
-        try {
-            allOrders = await apiCall('getOrders');
-            renderOrders(allOrders);
-        } catch (error) { /* Handled in apiCall */ }
-    }
+    async function loadOrders() { try { allOrders = await apiCall('getOrders'); renderOrders(allOrders); } catch (error) {} }
     function renderOrders(ordersToDisplay) {
         const tableBody = document.getElementById('orders-table-body');
         tableBody.innerHTML = ordersToDisplay.length === 0 ? '<tr><td colspan="7" class="text-center py-4">No orders found.</td></tr>' : ordersToDisplay.map(order => `
@@ -185,14 +168,8 @@
         renderOrders(filteredOrders);
     });
 
-    // --- Products Logic ---
     let allProducts = [];
-    async function loadProducts() {
-        try {
-            allProducts = await apiCall('getProducts');
-            renderProducts(allProducts);
-        } catch (error) { /* Handled in apiCall */ }
-    }
+    async function loadProducts() { try { allProducts = await apiCall('getProducts'); renderProducts(allProducts); } catch (error) {} }
     function renderProducts(productsToDisplay) {
         const tableBody = document.getElementById('products-table-body');
         tableBody.innerHTML = productsToDisplay.length === 0 ? '<tr><td colspan="6" class="text-center py-4">No products found.</td></tr>' : productsToDisplay.map(product => {
@@ -207,24 +184,21 @@
         renderProducts(filteredProducts);
     });
 
-    // --- Delivery Charges Logic ---
     async function loadDeliveryCharges() {
         try {
             const charges = await apiCall('getDeliveryCharges');
             const tableBody = document.getElementById('delivery-table-body');
             tableBody.innerHTML = charges.length === 0 ? '<tr><td colspan="3" class="text-center py-4">No delivery zones found.</td></tr>' : charges.map(charge => `
                 <tr class="border-b"><td class="py-3 px-4">${charge['Zone Name']}</td><td class="py-3 px-4">${charge['Charges']}</td><td class="py-3 px-4"><button class="text-green-600 hover:text-green-800" onclick='openDeliveryModal(${JSON.stringify(charge)})'><i class="fas fa-edit"></i></button></td></tr>`).join('');
-        } catch (error) { /* Handled in apiCall */ }
+        } catch (error) {}
     }
 
-    // --- Modal Logic ---
     function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
     window.onclick = function(event) { if (event.target.classList.contains('modal')) event.target.style.display = "none"; }
     
     document.getElementById('btn-add-product').addEventListener('click', () => openProductModal());
     document.getElementById('btn-add-zone').addEventListener('click', () => openDeliveryModal());
 
-    // --- Order Modal ---
     window.openOrderModal = function(order) {
         document.getElementById('customer-details-content').innerHTML = `<p><strong>Order ID:</strong> ${order['Order ID']}</p><p><strong>Name:</strong> ${order['Name']}</p><p><strong>Phone:</strong> ${order['Phone']}</p><p><strong>Address:</strong> ${order['Address']}</p><p><strong>Order Date:</strong> ${order['Order Date']}</p>`;
         document.getElementById('order-summary-content').innerHTML = `<p><strong>Product Details:</strong> ${order['Product Details']}</p><p><strong>Total Quantity:</strong> ${order['Total Quantity']}</p><p><strong>Product Price:</strong> ${order['Product Price']}</p><p><strong>Delivery Charges:</strong> ${order['Delivery Charges']}</p><p class="font-bold mt-2"><strong>Total Amount:</strong> ${order['Total Amount']}</p>`;
@@ -233,26 +207,16 @@
         document.getElementById('order-view-modal').style.display = 'block';
     }
     document.getElementById('btn-update-status').addEventListener('click', async () => {
-        const payload = {
-            orderId: document.getElementById('modal-order-id').value,
-            newStatus: document.getElementById('order-status-dropdown').value
-        };
-        try {
-            const response = await apiCall('updateOrderStatus', payload);
-            showToast(response, 'success');
-            closeModal('order-view-modal');
-            loadOrders();
-        } catch(error) { /* Handled */ }
+        const payload = { orderId: document.getElementById('modal-order-id').value, newStatus: document.getElementById('order-status-dropdown').value };
+        try { const response = await apiCall('updateOrderStatus', payload); showToast(response, 'success'); closeModal('order-view-modal'); loadOrders(); } catch(error) {}
     });
 
-    // --- Product Modal ---
-    let uploadedFiles = [];
+    let localFiles = [];
     window.openProductModal = function(product = null) {
-        const form = document.getElementById('product-form');
-        form.reset();
+        document.getElementById('product-form').reset();
         document.getElementById('image-preview-container').innerHTML = '';
         document.getElementById('variant-list').innerHTML = '';
-        uploadedFiles = [];
+        localFiles = [];
         if (product) {
             document.getElementById('product-modal-title').innerText = 'Edit Product';
             document.getElementById('product-row-index').value = product.rowIndex;
@@ -280,6 +244,7 @@
             document.getElementById('existing-image-links').value = '';
             handleCategoryChange();
         }
+        document.getElementById('btn-upload-images').classList.add('hidden');
         document.getElementById('product-form-modal').style.display = 'block';
     }
 
@@ -304,65 +269,120 @@
         Array.from(files).forEach(file => {
             const reader = new FileReader();
             reader.onload = (event) => {
-                uploadedFiles.push({ name: file.name, type: file.type, base64: event.target.result.split(',')[1], src: event.target.result });
+                localFiles.push({ file: file, base64: event.target.result.split(',')[1], src: event.target.result, status: 'pending', gdriveLink: null });
                 renderImagePreviews();
             };
             reader.readAsDataURL(file);
         });
+        document.getElementById('btn-upload-images').classList.remove('hidden');
     }
+
     function renderImagePreviews() {
         const previewContainer = document.getElementById('image-preview-container');
         previewContainer.innerHTML = '';
-        uploadedFiles.forEach((file, index) => {
+        localFiles.forEach((file, index) => {
             const div = document.createElement('div');
-            div.className = 'relative group';
-            div.innerHTML = `<img src="${file.src}" class="h-24 w-24 object-cover rounded"><button type="button" onclick="removeImage(${index})" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center">&times;</button>`;
+            div.className = 'relative group draggable';
+            div.setAttribute('draggable', true);
+            div.dataset.index = index;
+            let statusIndicator = '';
+            if (file.status === 'uploading') {
+                statusIndicator = `<div class="image-status-overlay"><div class="loader spinner"></div></div>`;
+            } else if (file.status === 'success') {
+                statusIndicator = `<div class="image-status-overlay bg-green-500 bg-opacity-70"><i class="fas fa-check-circle text-white text-2xl"></i></div>`;
+            } else if (file.status === 'error') {
+                statusIndicator = `<div class="image-status-overlay bg-red-500 bg-opacity-70"><i class="fas fa-exclamation-circle text-white text-2xl"></i></div>`;
+            }
+            div.innerHTML = `<img src="${file.src}" class="h-24 w-24 object-cover rounded">${statusIndicator}<button type="button" onclick="removeImage(${index})" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>`;
             previewContainer.appendChild(div);
         });
+        addDragAndDropListeners();
     }
-    window.removeImage = function(index) { uploadedFiles.splice(index, 1); renderImagePreviews(); }
+    window.removeImage = function(index) { localFiles.splice(index, 1); renderImagePreviews(); }
+
+    let draggedIndex = null;
+    function addDragAndDropListeners() {
+        const draggables = document.querySelectorAll('.draggable');
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', () => { draggedIndex = parseInt(draggable.dataset.index); draggable.classList.add('dragging'); });
+            draggable.addEventListener('dragend', () => draggable.classList.remove('dragging'));
+        });
+        const container = document.getElementById('image-preview-container');
+        container.addEventListener('dragover', e => {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(container, e.clientX);
+            const dragging = document.querySelector('.dragging');
+            if (afterElement == null) { container.appendChild(dragging); } else { container.insertBefore(dragging, afterElement); }
+        });
+        container.addEventListener('drop', () => {
+            const newOrder = Array.from(container.querySelectorAll('.draggable')).map(el => parseInt(el.dataset.index));
+            localFiles = newOrder.map(i => localFiles.find((f, originalIndex) => originalIndex === i));
+            renderImagePreviews();
+        });
+    }
+    function getDragAfterElement(container, x) {
+        const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = x - box.left - box.width / 2;
+            if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } 
+            else { return closest; }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    document.getElementById('btn-upload-images').addEventListener('click', async () => {
+        const uploadPromises = localFiles.map(async (fileObj, index) => {
+            if (fileObj.status === 'pending') {
+                fileObj.status = 'uploading';
+                renderImagePreviews();
+                try {
+                    const link = await apiCall('uploadFile', { name: fileObj.file.name, type: fileObj.file.type, base64: fileObj.base64 });
+                    fileObj.status = 'success';
+                    fileObj.gdriveLink = link;
+                } catch (error) {
+                    fileObj.status = 'error';
+                }
+                renderImagePreviews();
+            }
+        });
+        await Promise.all(uploadPromises);
+        showToast('All uploads complete!', 'success');
+    });
 
     document.getElementById('product-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!document.getElementById('product-sku').value.trim()) { showToast('SKU is required.', 'error'); return; }
+        if (localFiles.some(f => f.status === 'uploading')) { showToast('Please wait for images to finish uploading.', 'error'); return; }
 
-        const imageUploadPromises = uploadedFiles.map(file => apiCall('uploadFile', file));
-        
+        const productData = { 
+            rowIndex: document.getElementById('product-row-index').value, 
+            name: document.getElementById('product-name').value, 
+            price: document.getElementById('product-price').value, 
+            comparePrice: document.getElementById('product-compare-price').value, 
+            sku: document.getElementById('product-sku').value.trim(),
+            description: document.getElementById('product-description').value, 
+            category: document.getElementById('product-category').value, 
+            imageLinks: localFiles.filter(f => f.status === 'success').map(f => f.gdriveLink), 
+            existingImageLinks: document.getElementById('existing-image-links').value 
+        };
+        if (productData.category === 'Stitched') {
+            const variants = [];
+            document.querySelectorAll('#variant-list > div').forEach(div => {
+                const size = div.querySelector('.variant-size').value.trim();
+                const qty = div.querySelector('.variant-qty').value.trim();
+                if (size && qty) variants.push(`${size}-${qty}`);
+            });
+            productData.sizeAndQuantity = variants.join(',');
+        } else {
+            productData.availableStock = document.getElementById('available-stock').value;
+        }
+        const apiFunction = !!productData.rowIndex ? 'updateProduct' : 'addProduct';
         try {
-            const newImageLinks = await Promise.all(imageUploadPromises);
-            
-            const productData = { 
-                rowIndex: document.getElementById('product-row-index').value, 
-                name: document.getElementById('product-name').value, 
-                price: document.getElementById('product-price').value, 
-                comparePrice: document.getElementById('product-compare-price').value, 
-                sku: document.getElementById('product-sku').value.trim(),
-                description: document.getElementById('product-description').value, 
-                category: document.getElementById('product-category').value, 
-                imageLinks: newImageLinks, 
-                existingImageLinks: document.getElementById('existing-image-links').value 
-            };
-            
-            if (productData.category === 'Stitched') {
-                const variants = [];
-                document.querySelectorAll('#variant-list > div').forEach(div => {
-                    const size = div.querySelector('.variant-size').value.trim();
-                    const qty = div.querySelector('.variant-qty').value.trim();
-                    if (size && qty) variants.push(`${size}-${qty}`);
-                });
-                productData.sizeAndQuantity = variants.join(',');
-            } else {
-                productData.availableStock = document.getElementById('available-stock').value;
-            }
-
-            const apiFunction = !!productData.rowIndex ? 'updateProduct' : 'addProduct';
             const response = await apiCall(apiFunction, productData);
             showToast(response, 'success');
             closeModal('product-form-modal');
             loadProducts();
-        } catch (error) {
-            // Error already handled by apiCall
-        }
+        } catch(error) {}
     });
 
     // --- Delete Modal ---
@@ -375,7 +395,7 @@
                 const response = await apiCall('deleteProduct', {rowIndex, imageLinks});
                 showToast(response, 'success');
                 loadProducts();
-            } catch (error) { /* Handled */ }
+            } catch (error) {}
         };
     }
     document.getElementById('cancel-delete-btn').addEventListener('click', () => deleteConfirmModal.style.display = 'none');
@@ -404,7 +424,7 @@
             showToast(response, 'success');
             closeModal('delivery-form-modal');
             loadDeliveryCharges();
-        } catch (error) { /* Handled */ }
+        } catch (error) {}
     });
   </script>
 </body>
