@@ -108,7 +108,11 @@
         
         try {
             const response = await fetch(WEB_APP_URL, { method: 'POST', body: formData });
-            if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Server Response Error Text:", errorText);
+                throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+            }
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
             return result.data;
@@ -276,7 +280,6 @@
         });
         document.getElementById('btn-upload-images').classList.remove('hidden');
     }
-
     function renderImagePreviews() {
         const previewContainer = document.getElementById('image-preview-container');
         previewContainer.innerHTML = '';
@@ -286,13 +289,9 @@
             div.setAttribute('draggable', true);
             div.dataset.index = index;
             let statusIndicator = '';
-            if (file.status === 'uploading') {
-                statusIndicator = `<div class="image-status-overlay"><div class="loader spinner"></div></div>`;
-            } else if (file.status === 'success') {
-                statusIndicator = `<div class="image-status-overlay bg-green-500 bg-opacity-70"><i class="fas fa-check-circle text-white text-2xl"></i></div>`;
-            } else if (file.status === 'error') {
-                statusIndicator = `<div class="image-status-overlay bg-red-500 bg-opacity-70"><i class="fas fa-exclamation-circle text-white text-2xl"></i></div>`;
-            }
+            if (file.status === 'uploading') { statusIndicator = `<div class="image-status-overlay"><div class="loader spinner"></div></div>`; } 
+            else if (file.status === 'success') { statusIndicator = `<div class="image-status-overlay bg-green-500 bg-opacity-70"><i class="fas fa-check-circle text-white text-2xl"></i></div>`; } 
+            else if (file.status === 'error') { statusIndicator = `<div class="image-status-overlay bg-red-500 bg-opacity-70"><i class="fas fa-exclamation-circle text-white text-2xl"></i></div>`; }
             div.innerHTML = `<img src="${file.src}" class="h-24 w-24 object-cover rounded">${statusIndicator}<button type="button" onclick="removeImage(${index})" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>`;
             previewContainer.appendChild(div);
         });
@@ -385,7 +384,6 @@
         } catch(error) {}
     });
 
-    // --- Delete Modal ---
     const deleteConfirmModal = document.getElementById('delete-confirm-modal');
     window.showDeleteConfirmModal = function(rowIndex, imageLinks) {
         deleteConfirmModal.style.display = 'flex';
@@ -400,7 +398,6 @@
     }
     document.getElementById('cancel-delete-btn').addEventListener('click', () => deleteConfirmModal.style.display = 'none');
 
-    // --- Delivery Modal ---
     window.openDeliveryModal = function(zone = null) {
         const form = document.getElementById('delivery-form');
         form.reset();
