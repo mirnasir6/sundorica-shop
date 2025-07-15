@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel</title>
-  <link rel="icon" href="https://i.postimg.cc/ZnQQvLz4/Chat-GPT-Image-Jun-30-2025-11-26-21-PM.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -31,8 +30,8 @@
   <div id="loader" class="loader hidden"></div>
   <div id="toast-container"></div>
 
-  <!-- Login Section -->
-  <div id="login-section" class="flex flex-col items-center justify-center h-screen bg-gray-100">
+  <!-- Login Section (Initially hidden for testing) -->
+  <div id="login-section" class="hidden flex-col items-center justify-center h-screen bg-gray-100">
     <div class="w-full max-w-sm bg-white p-8 rounded-lg shadow-xl">
         <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Admin Panel Login</h2>
         <form id="login-form">
@@ -43,8 +42,8 @@
     </div>
   </div>
 
-  <!-- Main Admin Panel (Initially Hidden) -->
-  <div id="admin-panel" class="hidden flex h-screen">
+  <!-- Main Admin Panel -->
+  <div id="admin-panel" class="flex h-screen">
     <aside class="w-64 bg-gray-800 text-white flex flex-col">
       <div class="h-20 flex items-center justify-center text-2xl font-bold border-b border-gray-700">Admin Panel</div>
       <nav class="flex-1 px-4 py-4">
@@ -75,10 +74,11 @@
   </div>
 
   <!-- Modals -->
-  <div id="order-view-modal" class="modal"><div class="modal-content max-w-4xl"><span class="close-button" onclick="closeModal('order-view-modal')">&times;</span><h2 class="text-2xl font-bold mb-4">Order Details</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><h3 class="text-lg font-semibold border-b pb-2 mb-2">Customer Details</h3><div id="customer-details-content"></div></div><div><h3 class="text-lg font-semibold border-b pb-2 mb-2">Order Summary</h3><div id="order-summary-content" class="space-y-4"></div><div class="border-t mt-4 pt-4"><div class="flex justify-between font-semibold"><p>Total Amount:</p><p id="order-total-amount"></p></div></div><div class="mt-4"><label for="order-status-dropdown" class="block text-sm font-medium text-gray-700">Order Status</label><select id="order-status-dropdown" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"><option>Panding Order</option><option>Paid</option><option>Courier</option><option>Delivery</option><option>Cancel</option><option>Return</option></select><input type="hidden" id="modal-order-id"><button id="btn-update-status" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Update Status</button></div></div></div></div></div>
+  <div id="order-view-modal" class="modal"><div class="modal-content max-w-4xl"><span class="close-button" onclick="closeModal('order-view-modal')">&times;</span><h2 class="text-2xl font-bold mb-4">Order Details</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><h3 class="text-lg font-semibold border-b pb-2 mb-2">Customer Details</h3><div id="customer-details-content"></div></div><div><h3 class="text-lg font-semibold border-b pb-2 mb-2">Order Summary</h3><div id="order-summary-content" class="space-y-2"></div><div class="border-t mt-4 pt-4"><div class="flex justify-between font-semibold"><p>Total Amount:</p><p id="order-total-amount"></p></div></div><div class="mt-4"><label for="order-status-dropdown" class="block text-sm font-medium text-gray-700">Order Status</label><select id="order-status-dropdown" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"><option>Panding Order</option><option>Paid</option><option>Courier</option><option>Delivery</option><option>Cancel</option><option>Return</option></select><input type="hidden" id="modal-order-id"><button id="btn-update-status" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Update Status</button></div></div></div></div></div>
   <div id="product-form-modal" class="modal"><div class="modal-content max-w-3xl"><span class="close-button" onclick="closeModal('product-form-modal')">&times;</span><h2 id="product-modal-title" class="text-2xl font-bold mb-4">Add New Product</h2><form id="product-form"><input type="hidden" id="product-row-index"><input type="hidden" id="existing-image-links"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="text" id="product-name" placeholder="Product Name" class="p-2 border rounded w-full col-span-2" required><input type="number" id="product-price" placeholder="Price" class="p-2 border rounded" required><input type="number" id="product-compare-price" placeholder="Compare-at Price" class="p-2 border rounded"><input type="text" id="product-sku" placeholder="SKU (Stock Keeping Unit)" class="p-2 border rounded col-span-2" required><textarea id="product-description" placeholder="Description" class="p-2 border rounded w-full col-span-2" rows="3"></textarea><div class="col-span-2"><label class="block text-sm font-medium text-gray-700">Images</label><div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"><div class="space-y-1 text-center"><svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="flex text-sm text-gray-600"><label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"><span>Select files</span><input id="file-upload" name="file-upload" type="file" class="sr-only" multiple accept="image/*"></label></div><p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p></div></div><div id="image-preview-container" class="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4"></div><button type="button" id="btn-upload-images" class="mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hidden"><i class="fas fa-upload mr-2"></i> Upload Selected Images</button></div><select id="product-category" class="p-2 border rounded col-span-2" required><option value="">Select Category</option><option value="Stitched">Stitched</option><option value="Unstitched">Unstitched</option><option value="Skin Care">Skin Care</option></select><div id="variant-options" class="col-span-2 hidden"><h4 class="font-semibold mb-2">Variants (Size & Quantity)</h4><div id="variant-list"></div><button type="button" id="add-variant-btn" class="mt-2 text-sm text-blue-500 hover:underline">+ Add Variant</button></div><div id="stock-option" class="col-span-2 hidden"><input type="number" id="available-stock" placeholder="Available Stock" class="p-2 border rounded w-full"></div></div><button type="submit" id="save-product-btn" class="mt-4 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save Product</button></form></div></div>
   <div id="delivery-form-modal" class="modal"><div class="modal-content max-w-md"><span class="close-button" onclick="closeModal('delivery-form-modal')">&times;</span><h2 id="delivery-modal-title" class="text-2xl font-bold mb-4">Add New Zone</h2><form id="delivery-form"><input type="hidden" id="zone-row-index"><input type="text" id="zone-name" placeholder="Zone Name" class="p-2 border rounded w-full mb-4" required><input type="number" id="zone-charge" placeholder="Delivery Charge" class="p-2 border rounded w-full mb-4" required><button type="submit" id="save-zone-btn" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save Zone</button></form></div></div>
   <div id="delete-confirm-modal" class="modal items-center justify-center"><div class="modal-content max-w-sm text-center"><h2 class="text-xl font-bold mb-4">Confirm Deletion</h2><p class="text-gray-700 mb-6">Are you sure you want to delete this product? This action cannot be undone.</p><div class="flex justify-center gap-4"><button id="cancel-delete-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancel</button><button id="confirm-delete-btn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Confirm Delete</button></div></div></div>
+  <div id="image-lightbox-modal" class="modal items-center justify-center"><span class="close-button" onclick="closeModal('image-lightbox-modal')">&times;</span><img class="max-h-[80vh] max-w-[80vw]" id="lightbox-img-src" src=""></div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymrW4hYS23CJxNzuxIuYYFLIOTV_Xe8ymZ24JGXFuNfI4lxxiVLS2nTHlCdNJi32s/exec"; // <-- IMPORTANT: Paste your new Web App URL here
@@ -129,10 +129,18 @@
             if (result.success) {
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('admin-panel').style.display = 'flex';
-                loadOrders();
+                loadInitialData();
             }
         } catch (error) {}
     });
+    
+    // Bypass login for testing
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'flex';
+    async function loadInitialData() {
+        await Promise.all([loadOrders(), loadProducts()]);
+    }
+    loadInitialData();
 
     const navLinks = document.querySelectorAll('aside nav a');
     const views = document.querySelectorAll('.main-content > div');
@@ -160,8 +168,10 @@
     async function loadOrders() { try { allOrders = await apiCall('getOrders'); renderOrders(allOrders); } catch (error) {} }
     function renderOrders(ordersToDisplay) {
         const tableBody = document.getElementById('orders-table-body');
-        tableBody.innerHTML = ordersToDisplay.length === 0 ? '<tr><td colspan="7" class="text-center py-4">No orders found.</td></tr>' : ordersToDisplay.map(order => `
-            <tr class="border-b"><td class="py-3 px-4">${order['Order ID']}</td><td class="py-3 px-4">${order['Order Date']}</td><td class="py-3 px-4">${order['Name']}</td><td class="py-3 px-4">${order['Phone']}</td><td class="py-3 px-4 max-w-xs truncate" title="${order['Address']}">${order['Address']}</td><td class="py-3 px-4">${getStatusBadge(order['Order Status'])}</td><td class="py-3 px-4"><button class="text-blue-500 hover:underline" onclick='openOrderModal(${JSON.stringify(order)})'>View Order</button></td></tr>`).join('');
+        tableBody.innerHTML = ordersToDisplay.length === 0 ? '<tr><td colspan="7" class="text-center py-4">No orders found.</td></tr>' : ordersToDisplay.map(order => {
+            const formattedDate = new Date(order['Order Date']).toLocaleDateString('en-GB');
+            return `<tr class="border-b"><td class="py-3 px-4">${order['Order ID']}</td><td class="py-3 px-4">${formattedDate}</td><td class="py-3 px-4">${order['Name']}</td><td class="py-3 px-4">${order['Phone']}</td><td class="py-3 px-4 max-w-xs truncate" title="${order['Address']}">${order['Address']}</td><td class="py-3 px-4">${getStatusBadge(order['Order Status'])}</td><td class="py-3 px-4"><button class="text-blue-500 hover:underline" onclick='openOrderModal(${JSON.stringify(order)})'>View Order</button></td></tr>`;
+        }).join('');
     }
     document.getElementById('order-search-box').addEventListener('keyup', (e) => {
         const searchTerm = e.target.value.toLowerCase();
@@ -201,39 +211,48 @@
     document.getElementById('btn-add-zone').addEventListener('click', () => openDeliveryModal());
 
     window.openOrderModal = function(order) {
-        document.getElementById('customer-details-content').innerHTML = `<p><strong>Order ID:</strong> ${order['Order ID']}</p><p><strong>Name:</strong> ${order['Name']}</p><p><strong>Phone:</strong> ${order['Phone']}</p><p><strong>Address:</strong> ${order['Address']}</p><p><strong>Order Date:</strong> ${order['Order Date']}</p>`;
+        document.getElementById('customer-details-content').innerHTML = `<p><strong>Order ID:</strong> ${order['Order ID']}</p><p><strong>Name:</strong> ${order['Name']}</p><p><strong>Phone:</strong> ${order['Phone']}</p><p><strong>Address:</strong> ${order['Address']}</p><p><strong>Order Date:</strong> ${new Date(order['Order Date']).toLocaleDateString('en-GB')}</p>`;
         
         const summaryContainer = document.getElementById('order-summary-content');
-        summaryContainer.innerHTML = ''; // Clear previous content
-        const productDetailsString = order['Product Details'];
-        const items = productDetailsString.split(',').map(item => item.trim());
+        summaryContainer.innerHTML = '';
+        const items = order['Product Details'].split(',').map(item => item.trim());
 
         items.forEach(itemString => {
             const parts = itemString.split('-');
-            const quantity = parts.pop();
+            const quantity = parseInt(parts.pop());
             const size = parts.length > 1 && isNaN(parseInt(parts[parts.length - 1])) ? parts.pop() : null;
             const name = parts.join('-');
 
             const product = allProducts.find(p => p.name === name);
+            const price = product ? product.price : 0;
+            const subtotal = price * quantity;
             const imageUrl = product && product['images link'] ? product['images link'].split(',')[0] : 'https://placehold.co/64x64/e2e8f0/a0aec0?text=N/A';
             
             summaryContainer.innerHTML += `
-                <div class="flex items-center gap-4 border-b border-gray-200 py-2">
-                    <img src="${imageUrl}" class="w-16 h-16 rounded object-cover">
+                <div class="flex items-center gap-3 border-b border-gray-200 py-2 text-sm">
+                    <img src="${imageUrl}" class="w-12 h-12 rounded object-cover cursor-pointer" onclick="viewImage('${imageUrl}')">
                     <div class="flex-grow">
                         <p class="font-semibold">${name}</p>
-                        ${size ? `<p class="text-sm text-gray-600">Size: ${size}</p>` : ''}
+                        ${size ? `<p class="text-xs text-gray-600">Size: ${size}</p>` : ''}
                     </div>
-                    <p class="text-sm text-gray-600">x ${quantity}</p>
-                </div>
-            `;
+                    <div class="text-right">
+                        <p>৳${price.toLocaleString()} x ${quantity}</p>
+                        <p class="font-semibold">৳${subtotal.toLocaleString()}</p>
+                    </div>
+                </div>`;
         });
 
-        document.getElementById('order-total-amount').textContent = `৳${order['Total Amount']}`;
+        document.getElementById('order-total-amount').textContent = `৳${order['Total Amount'].toLocaleString()}`;
         document.getElementById('order-status-dropdown').value = order['Order Status'];
         document.getElementById('modal-order-id').value = order['Order ID'];
         document.getElementById('order-view-modal').style.display = 'block';
     }
+
+    window.viewImage = function(src) {
+        document.getElementById('lightbox-img-src').src = src;
+        document.getElementById('image-lightbox-modal').style.display = 'flex';
+    }
+
     document.getElementById('btn-update-status').addEventListener('click', async () => {
         const payload = { orderId: document.getElementById('modal-order-id').value, newStatus: document.getElementById('order-status-dropdown').value };
         try { const response = await apiCall('updateOrderStatus', payload); showToast(response, 'success'); closeModal('order-view-modal'); loadOrders(); } catch(error) {}
@@ -254,10 +273,11 @@
             document.getElementById('product-sku').value = product['sku'] || '';
             document.getElementById('product-description').value = product['description'];
             document.getElementById('product-category').value = product['category'];
-            document.getElementById('existing-image-links').value = product['images link'] || '';
-            if (product['images link']) {
+            const existingLinks = product['images link'] || '';
+            document.getElementById('existing-image-links').value = existingLinks;
+            if (existingLinks) {
                 const previewContainer = document.getElementById('image-preview-container');
-                product['images link'].split(',').forEach(url => { if(url) previewContainer.innerHTML += `<div class="relative"><img src="${url}" class="h-24 w-24 object-cover rounded"></div>`; });
+                existingLinks.split(',').forEach(url => { if(url) previewContainer.innerHTML += `<div class="relative"><img src="${url}" class="h-24 w-24 object-cover rounded"></div>`; });
             }
             handleCategoryChange();
             if (product['category'] === 'Stitched') {
@@ -354,7 +374,7 @@
     }
 
     document.getElementById('btn-upload-images').addEventListener('click', async () => {
-        const uploadPromises = localFiles.map(async (fileObj, index) => {
+        const uploadPromises = localFiles.map(async (fileObj) => {
             if (fileObj.status === 'pending') {
                 fileObj.status = 'uploading';
                 renderImagePreviews();
