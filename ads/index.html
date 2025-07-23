@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>Ads Management</title>
+    <link rel="icon" type="image/webp" href="https://i.postimg.cc/sxnjTBJz/5582655.webp">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ads Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            scroll-behavior: smooth;
+        }
+        .summary-card { 
+            transition: transform 0.2s, box-shadow 0.2s; 
+        }
+        .summary-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+        }
+        .modal { 
+            transition: opacity 0.25s ease; 
+        }
+        #notification-toast { 
+            z-index: 1000; 
+            transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+        }
+        /* Custom scrollbar for tables on mobile */
+        .table-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 3px;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-6 text-center">Ads Management Dashboard</h1>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="summary-card bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-base sm:text-lg font-semibold text-blue-600 mb-2">Total Loaded (USD)</h2>
+                <p id="total-usd" class="text-2xl sm:text-3xl font-bold text-slate-900">$0.00</p>
+            </div>
+            <div class="summary-card bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-base sm:text-lg font-semibold text-red-600 mb-2">Total Ad Cost (USD)</h2>
+                <p id="total-cost" class="text-2xl sm:text-3xl font-bold text-slate-900">$0.00</p>
+            </div>
+            <div class="summary-card bg-white p-6 rounded-xl shadow-md border border-slate-200 col-span-1 sm:col-span-2 lg:col-span-1">
+                <h2 class="text-base sm:text-lg font-semibold text-green-600 mb-2">Available Balance (USD)</h2>
+                <p id="available-usd" class="text-2xl sm:text-3xl font-bold text-slate-900">$0.00</p>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Load Amount Section -->
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-md border border-slate-200">
+                <div class="flex flex-col sm:flex-row flex-wrap justify-between items-start sm:items-center mb-4 gap-4">
+                    <h2 class="text-xl sm:text-2xl font-bold">Load Amount</h2>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                        <p id="current-rate-display" class="text-sm text-slate-600 font-medium whitespace-nowrap">Loading rate...</p>
+                        <div class="flex items-center gap-2">
+                            <input type="number" step="0.01" id="custom-rate-input" placeholder="Set BDT Rate" class="w-28 p-2 border border-slate-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500">
+                            <button id="set-rate-btn" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-800 px-3 py-2 rounded-md font-semibold">Set</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto table-container">
+                    <table class="w-full text-left min-w-[400px]">
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th class="p-3 font-semibold text-sm">Date</th>
+                                <th class="p-3 font-semibold text-sm">Recharges (Tk)</th>
+                                <th class="p-3 font-semibold text-sm">USD</th>
+                            </tr>
+                        </thead>
+                        <tbody id="load-amount-body"></tbody>
+                    </table>
+                </div>
+                <button onclick="openModal('load-modal')" class="mt-4 w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 transition font-semibold">Add Load Amount</button>
+            </div>
+
+            <!-- Ads Details Section -->
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-md border border-slate-200">
+                <div class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4 mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold">Ads Details</h2>
+                    <div class="flex flex-wrap items-center gap-2 bg-slate-100 p-2 rounded-lg">
+                        <label for="report-from-date" class="text-sm font-medium text-slate-700">From:</label>
+                        <input type="date" id="report-from-date" class="p-1 border border-slate-300 rounded-md text-sm">
+                        <label for="report-to-date" class="text-sm font-medium text-slate-700">To:</label>
+                        <input type="date" id="report-to-date" class="p-1 border border-slate-300 rounded-md text-sm">
+                        <button id="download-report-btn" class="bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 text-sm font-semibold w-full sm:w-auto mt-2 sm:mt-0">Download Excel</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto table-container">
+                    <table class="w-full text-left min-w-[500px]">
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th class="p-3 font-semibold text-sm">Ad Name</th>
+                                <th class="p-3 font-semibold text-sm">Daily Budget</th>
+                                <th class="p-3 font-semibold text-sm">Duration</th>
+                                <th class="p-3 font-semibold text-sm">Total Cost</th>
+                                <th class="p-3 font-semibold text-sm text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ads-details-body"></tbody>
+                    </table>
+                </div>
+                 <button onclick="openModal('ad-modal')" class="mt-4 w-full bg-indigo-600 text-white py-2.5 px-4 rounded-lg hover:bg-indigo-700 transition font-semibold">Add Ad</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (unchanged structure, but will be responsive due to Tailwind) -->
+    <div id="load-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden p-4"><div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md"><h2 class="text-2xl font-bold mb-6">Add New Load Amount</h2><form id="load-form"><div class="mb-4"><label for="load-date" class="block text-sm font-medium text-slate-700 mb-1">Date</label><input type="date" id="load-date" class="w-full p-2 border border-slate-300 rounded-lg" required></div><div class="mb-4"><label for="recharge-tk" class="block text-sm font-medium text-slate-700 mb-1">Recharge Amount (Tk)</label><input type="number" id="recharge-tk" class="w-full p-2 border border-slate-300 rounded-lg" required></div><div class="mb-6"><label for="usd-amount" class="block text-sm font-medium text-slate-700 mb-1">Amount (USD)</label><input type="number" step="0.01" id="usd-amount" class="w-full p-2 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" readonly></div><div class="flex justify-end gap-4"><button type="button" onclick="closeModal('load-modal')" class="bg-slate-300 text-slate-800 py-2 px-4 rounded-lg hover:bg-slate-400">Cancel</button><button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">Add Entry</button></div></form></div></div>
+    <div id="ad-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden p-4"><div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md"><h2 class="text-2xl font-bold mb-6">Add New Ad</h2><form id="ad-form"><div class="mb-4"><label for="ad-name" class="block text-sm font-medium text-slate-700 mb-1">Ad Name</label><input type="text" id="ad-name" class="w-full p-2 border border-slate-300 rounded-lg" required></div><div class="mb-4"><label for="start-date" class="block text-sm font-medium text-slate-700 mb-1">Start Date</label><input type="date" id="start-date" class="w-full p-2 border border-slate-300 rounded-lg" required></div><div class="mb-4"><label for="end-date" class="block text-sm font-medium text-slate-700 mb-1">End Date</label><input type="date" id="end-date" class="w-full p-2 border border-slate-300 rounded-lg" required></div><div class="mb-6"><label for="daily-budget" class="block text-sm font-medium text-slate-700 mb-1">Daily Budget (USD)</label><input type="number" step="0.01" id="daily-budget" class="w-full p-2 border border-slate-300 rounded-lg" required></div><div class="flex justify-end gap-4"><button type="button" onclick="closeModal('ad-modal')" class="bg-slate-300 text-slate-800 py-2 px-4 rounded-lg hover:bg-slate-400">Cancel</button><button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700">Add Ad</button></div></form></div></div>
+    <div id="edit-ad-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden p-4"><div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md"><h2 class="text-2xl font-bold mb-4">Edit Ad End Date</h2><form id="edit-ad-form"><div class="mb-4"><p class="block text-sm font-medium text-slate-700 mb-1">Ad Name</p><p id="edit-ad-name" class="w-full p-2 bg-slate-100 rounded-lg"></p></div><div class="mb-6"><label for="edit-end-date" class="block text-sm font-medium text-slate-700 mb-1">New End Date</label><input type="date" id="edit-end-date" class="w-full p-2 border border-slate-300 rounded-lg" required></div><div class="flex justify-end gap-4"><button type="button" onclick="closeModal('edit-ad-modal')" class="bg-slate-300 text-slate-800 py-2 px-4 rounded-lg hover:bg-slate-400">Cancel</button><button type="submit" class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">Update Date</button></div></form></div></div>
+
+    <!-- Notification Toast -->
+    <div id="notification-toast" class="fixed top-5 right-5 bg-red-600 text-white py-3 px-5 rounded-lg shadow-xl opacity-0 translate-x-[120%]">
+        <p id="notification-message"></p>
+    </div>
+    
+    <script>
+        // *** গুরুত্বপূর্ণ: এখানে আপনার Apps Script Web App URL পেস্ট করুন ***
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxF8QXF1Ivw0Lg-SsDgDPCE0t8PT1jDIJwRg9razsJC7tKD043RlLLCN46Q1qhtwvk/exec";
+
+        // Global variables
+        let loadAmounts = [];
+        let adsDetails = [];
+        let BDT_PER_USD = 121.0;
+
+        // DOM Elements
+        const loadAmountBody = document.getElementById('load-amount-body'), adsDetailsBody = document.getElementById('ads-details-body'), totalUsdEl = document.getElementById('total-usd'), totalCostEl = document.getElementById('total-cost'), availableUsdEl = document.getElementById('available-usd'), loadForm = document.getElementById('load-form'), adForm = document.getElementById('ad-form'), editAdForm = document.getElementById('edit-ad-form'), rechargeTkInput = document.getElementById('recharge-tk'), usdAmountInput = document.getElementById('usd-amount'), rateDisplay = document.getElementById('current-rate-display'), customRateInput = document.getElementById('custom-rate-input'), setRateBtn = document.getElementById('set-rate-btn'), downloadReportBtn = document.getElementById('download-report-btn');
+
+        // Helper function to call our Google Apps Script API
+        async function callApi(action, payload = {}) {
+            document.body.style.cursor = 'wait';
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action, payload })
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                if (result.status === 'error') throw new Error(result.message);
+                return result.data;
+            } catch (error) {
+                showNotification(`API Error: ${error.message}`);
+                throw error;
+            } finally {
+                document.body.style.cursor = 'default';
+            }
+        }
+
+        // Updated Notification Function
+        function showNotification(message, isError = true) {
+            const toast = document.getElementById('notification-toast');
+            const messageEl = document.getElementById('notification-message');
+            messageEl.textContent = message;
+            toast.classList.remove('bg-red-600', 'bg-green-600');
+            toast.classList.add(isError ? 'bg-red-600' : 'bg-green-600');
+            toast.classList.remove('opacity-0', 'translate-x-[120%]');
+            toast.classList.add('opacity-100', 'translate-x-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-x-0');
+                toast.classList.add('opacity-0', 'translate-x-[120%]');
+            }, 3000);
+        }
+        
+        // Render Functions
+        function renderLoadAmounts() { loadAmountBody.innerHTML = ''; if (loadAmounts.length === 0) { loadAmountBody.innerHTML = `<tr><td colspan="3" class="text-center p-4 text-slate-500">No load amounts added yet.</td></tr>`; } else { loadAmounts.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(item => { const row = `<tr class="border-b border-slate-200 hover:bg-slate-50"><td class="p-3">${formatDate(item.date)}</td><td class="p-3">${item.recharges.toLocaleString('en-IN')}</td><td class="p-3 font-medium">${formatCurrency(item.usd)}</td></tr>`; loadAmountBody.innerHTML += row; }); } }
+        function renderAdsDetails() { adsDetailsBody.innerHTML = ''; if (adsDetails.length === 0) { adsDetailsBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-slate-500">No ads added yet.</td></tr>`; } else { adsDetails.slice().sort((a, b) => new Date(b.startDate) - new Date(a.startDate)).forEach(ad => { const durationDays = dayjs(ad.endDate).diff(dayjs(ad.startDate), 'day') + 1; const totalCost = durationDays * ad.dailyBudget; const row = `<tr class="border-b border-slate-200 hover:bg-slate-50"><td class="p-3 font-medium">${ad.adsName}</td><td class="p-3">${formatCurrency(ad.dailyBudget)}</td><td class="p-3">${formatDate(ad.startDate)} to ${formatDate(ad.endDate)} (${durationDays} days)</td><td class="p-3 font-medium">${formatCurrency(totalCost)}</td><td class="p-3 text-right"><button onclick="openEditAdModal('${ad.adsName}')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button></td></tr>`; adsDetailsBody.innerHTML += row; }); } }
+        function calculateSummary() { const totalUsd = loadAmounts.reduce((sum, item) => sum + (item.usd || 0), 0); const totalCost = adsDetails.reduce((sum, ad) => { const durationDays = dayjs(ad.endDate).diff(dayjs(ad.startDate), 'day') + 1; return sum + (durationDays > 0 ? durationDays * (ad.dailyBudget || 0) : 0); }, 0); const availableUsd = totalUsd - totalCost; totalUsdEl.textContent = formatCurrency(totalUsd); totalCostEl.textContent = formatCurrency(totalCost); availableUsdEl.textContent = formatCurrency(availableUsd); availableUsdEl.classList.toggle('text-green-600', availableUsd >= 0); availableUsdEl.classList.toggle('text-red-600', availableUsd < 0); }
+        function renderAll() { renderLoadAmounts(); renderAdsDetails(); calculateSummary(); }
+
+        // Utility Functions
+        const formatCurrency = (amount) => `$${(amount || 0).toFixed(2)}`;
+        const formatDate = (dateString) => dayjs(dateString).format('DD-MMM-YYYY');
+        const closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
+        const openModal = (modalId) => { const today = dayjs().format('YYYY-MM-DD'); if (modalId === 'load-modal') document.getElementById('load-date').value = today; if (modalId === 'ad-modal') document.getElementById('start-date').value = today; document.getElementById(modalId).classList.remove('hidden'); };
+        function openEditAdModal(adName) { const adToEdit = adsDetails.find(ad => ad.adsName === adName); if (adToEdit) { document.getElementById('edit-ad-name').textContent = adToEdit.adsName; const endDateInput = document.getElementById('edit-end-date'); endDateInput.value = dayjs(adToEdit.endDate).format('YYYY-MM-DD'); openModal('edit-ad-modal'); } }
+        function updateRateDisplay(rate, isCustom = false, isFallback = false) { let label = 'Live'; if (isCustom) label = 'Custom'; if (isFallback) label = 'Fallback'; rateDisplay.textContent = `${label} Rate: 1 USD = ${parseFloat(rate).toFixed(2)} BDT`; }
+        
+        // Event Listeners
+        setRateBtn.addEventListener('click', () => { const customRate = parseFloat(customRateInput.value); if (!isNaN(customRate) && customRate > 0) { BDT_PER_USD = customRate; updateRateDisplay(BDT_PER_USD, true); customRateInput.value = ''; } else { showNotification('Please enter a valid number for the rate.'); } });
+        rechargeTkInput.addEventListener('input', () => { const bdtAmount = parseFloat(rechargeTkInput.value); usdAmountInput.value = (!isNaN(bdtAmount) && bdtAmount > 0) ? (bdtAmount / BDT_PER_USD).toFixed(2) : ''; });
+        
+        loadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newLoad = { date: document.getElementById('load-date').value, recharges: parseFloat(rechargeTkInput.value), usd: parseFloat(usdAmountInput.value) };
+            if (isNaN(newLoad.usd) || newLoad.usd <= 0) { showNotification("Please enter a valid recharge amount."); return; }
+            showNotification("Adding new load...", false);
+            try {
+                await callApi('addLoadEntry', newLoad);
+                loadAmounts.push(newLoad); renderAll();
+                showNotification("Load added successfully!", false);
+                closeModal('load-modal'); loadForm.reset();
+            } catch (error) { /* Error already shown by callApi */ }
+        });
+
+        adForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newAd = { adsName: document.getElementById('ad-name').value, startDate: document.getElementById('start-date').value, endDate: document.getElementById('end-date').value, dailyBudget: parseFloat(document.getElementById('daily-budget').value) };
+            if (dayjs(newAd.endDate).isBefore(dayjs(newAd.startDate))) { showNotification("End date cannot be before start date."); return; }
+            showNotification("Adding new ad...", false);
+            try {
+                await callApi('addAdEntry', newAd);
+                adsDetails.push(newAd); renderAll();
+                showNotification("Ad added successfully!", false);
+                closeModal('ad-modal'); adForm.reset();
+            } catch (error) { /* Error already shown by callApi */ }
+        });
+
+        editAdForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const adName = document.getElementById('edit-ad-name').textContent;
+            const newEndDate = document.getElementById('edit-end-date').value;
+            showNotification("Updating ad...", false);
+            try {
+                const successMessage = await callApi('editAdEndDate', { adName, newEndDate });
+                const adIndex = adsDetails.findIndex(ad => ad.adsName === adName);
+                if (adIndex !== -1) { adsDetails[adIndex].endDate = newEndDate; }
+                renderAll();
+                showNotification(successMessage, false);
+                closeModal('edit-ad-modal');
+            } catch (error) { /* Error already shown by callApi */ }
+        });
+
+        downloadReportBtn.addEventListener('click', () => { const fromDateStr = document.getElementById('report-from-date').value, toDateStr = document.getElementById('report-to-date').value; if (!fromDateStr || !toDateStr) { showNotification('Please select both "From" and "To" dates.'); return; } const fromDate = dayjs(fromDateStr), toDate = dayjs(toDateStr); const filteredAds = adsDetails.filter(ad => dayjs(ad.startDate).isBefore(toDate.add(1, 'day')) && dayjs(ad.endDate).isAfter(fromDate.subtract(1, 'day'))); if (filteredAds.length === 0) { showNotification('No ad data found for the selected date range.'); return; } const reportData = filteredAds.map(ad => ({ 'Ad Name': ad.adsName, 'Start Date': formatDate(ad.startDate), 'End Date': formatDate(ad.endDate), 'Duration (Days)': dayjs(ad.endDate).diff(dayjs(ad.startDate), 'day') + 1, 'Daily Budget (USD)': ad.dailyBudget, 'Total Cost (USD)': parseFloat(((dayjs(ad.endDate).diff(dayjs(ad.startDate), 'day') + 1) * ad.dailyBudget).toFixed(2)) })); const worksheet = XLSX.utils.json_to_sheet(reportData); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "Ads Details Report"); worksheet['!cols'] = [ { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 } ]; XLSX.writeFile(workbook, "Ads_Details_Report.xlsx"); });
+
+        // App Initialization
+        window.onload = async function() {
+            const today = dayjs().format('YYYY-MM-DD');
+            document.getElementById('report-from-date').value = today;
+            document.getElementById('report-to-date').value = today;
+
+            if (!WEB_APP_URL.startsWith("https")) {
+                showNotification("Please set your Web App URL in the script.");
+                return;
+            }
+
+            showNotification("Loading initial data...", false);
+            try {
+                const response = await callApi('getInitialData');
+                const rateData = response.rateData;
+                if (rateData.success) {
+                    BDT_PER_USD = parseFloat(rateData.rate);
+                    updateRateDisplay(BDT_PER_USD);
+                } else {
+                    BDT_PER_USD = parseFloat(rateData.fallbackRate);
+                    updateRateDisplay(BDT_PER_USD, false, true);
+                }
+                loadAmounts = response.loadAmounts.map(row => ({ date: row[0], recharges: parseFloat(row[1]) || 0, usd: parseFloat(row[2]) || 0 }));
+                adsDetails = response.adsDetails.map(row => ({ adsName: row[0], startDate: row[1], endDate: row[2], dailyBudget: parseFloat(row[3]) || 0 }));
+                renderAll();
+                showNotification("App is ready!", false);
+            } catch (error) {
+                showNotification("Critical Error loading data.", true);
+            }
+        };
+    </script>
+</body>
+</html>
